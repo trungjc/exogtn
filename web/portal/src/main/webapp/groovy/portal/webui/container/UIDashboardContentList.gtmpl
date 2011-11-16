@@ -1,0 +1,18 @@
+<%
+	import org.exoplatform.application.registry.Application;
+%>
+
+<div>
+	<table>
+		<%
+			for(Application app : uicomponent.applications)
+			{
+	  %>
+		  <tr>
+				<td><span><%= app.getType().getName();%></span></td>
+				<td><span><%= app.getApplicationName();%></span></td>
+				<td><a href="<%= uicomponent.event("AddContent", app.getApplicationName());%>">Add</a></td>
+			</tr>
+		<% } %>
+	</table>
+</div>

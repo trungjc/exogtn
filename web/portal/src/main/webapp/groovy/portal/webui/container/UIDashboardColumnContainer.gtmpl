@@ -1,0 +1,54 @@
+<% 
+  import org.exoplatform.web.application.JavascriptManager;
+  import org.exoplatform.portal.webui.application.UIGadget;
+  
+  def uiDashboard = uicomponent.getParent();
+  def rcontext = _ctx.getRequestContext() ;
+  //JavascriptManager jsmanager = rcontext.getJavascriptManager();
+  //String windowId = uicomponent.getDashboardContainerID();
+  //jsmanager.addCustomizedOnLoadScript("eXo.webui.UIDashboardLayout.onLoad('" + windowId + "', true);") ;
+%>
+<div id="$uicomponent.id" class="UIDashboardContainer">
+	<div class="GadgetContainer UIResizableBlock" id="GadgetContainer">
+		<%if (uiDashboard.canEdit()) { %>
+		<div class="ContainerControlBarL" style="visibility: visible">
+			<div class="ContainerControlBarR">
+				<div class="ContainerControlBarM">
+					<div class="AddIcon">
+						<!-- <a href="#" onclick="eXo.webui.UIDashboardLayout.showHideSelectContainer(event);return false;"><%=_ctx.appRes("UIDashboardContainer.label.openWorkspace");%></a> -->
+						<a href="<%= uicomponent.event("SetShowSelectContainer");%>"><%=_ctx.appRes("UIDashboardContainer.label.openWorkspace");%></a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<%}%>
+		<div class="NoGadget" style="display: <%=uicomponent.hasUIGadget() ? "none" : "block"%>"><%= _ctx.appRes("UIDashboard.msg.addGadget"); %></div>
+
+
+		  <!-- Render dashboard columns -->
+
+
+		<div class="UIColumns" >
+
+<%
+  int childrenNbs = uicomponent.getNumberOfDashboardColumns();
+  float childWidth = (100 / childrenNbs) - 1;
+		for(uichild in uicomponent.getChildren()){
+%>
+	<div class="UIColumn" id="$uichild.id" style="width:<%=childWidth%>%;" >
+		<%
+			uicomponent.renderChild(uichild) ;
+		%>
+	</div>
+<% } %>
+	<div class="ClearLeft"><span></span></div>
+</div>
+
+		<!-- End render dashboard columns -->
+
+
+
+
+
+	</div>
+</div>

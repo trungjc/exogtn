@@ -1,0 +1,48 @@
+<%
+  import org.exoplatform.portal.webui.container.UIDashboardLayout;
+	import org.exoplatform.portal.webui.workspace.UIPortalApplication;
+
+	def rcontext = _ctx.getRequestContext();
+
+	UIPortalApplication uiPortalApp = rcontext.getUIApplication();
+%>
+
+
+<div class="UIContainer <%= uiPortalApp.isEditing()?"EdittingContainer":"";%>"
+				id="<%=uicomponent.getId();%>"
+				onmouseover="eXo.portal.UIPortal.blockOnMouseOver(event, this, true);"
+				onmouseout="eXo.portal.UIPortal.blockOnMouseOver(event, this, false);">
+<div class="NormalContainerBlock UIComponentBlock">
+
+
+<% if(uiPortalApp.isEditing())
+	{
+%>
+
+<div class="LAYOUT-CONTAINER LAYOUT-BLOCK">
+	<div>
+		<div class="UIRowContainer EmptyContainer">
+
+
+
+		</div>
+	</div>
+</div>
+<% } else { %>
+
+
+
+
+
+<div class="VIEW-CONTAINER VIEW-BLOCK">
+
+<div class="UIContainer">
+	<% uicomponent.renderChildren(); %>
+</div>
+
+</div>
+
+<% } %>
+
+</div>
+</div>
