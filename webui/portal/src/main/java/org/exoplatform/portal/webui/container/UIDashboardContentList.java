@@ -25,6 +25,7 @@ import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.UserACL;
 import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
+import org.exoplatform.portal.config.model.Container;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.TransientApplicationState;
 import org.exoplatform.portal.pom.spi.gadget.Gadget;
@@ -103,24 +104,17 @@ public class UIDashboardContentList extends org.exoplatform.webui.core.UIContain
          UIComponent appWindow = buildAppWindow(dbColumn, app, appName);
          dbColumn.addChild(appWindow);
 
-         UIPortal uiPortal = Util.getUIPortal();
-
-         //For instance, DashboardLayoutContainer is used only in UIPage
-         UIPage uiPage = dashboardLayout.getAncestorOfType(UIPage.class);
-
-         Page page = PortalDataMapper.toPageModel(uiPage);
-         String pageId = page.getPageId();
-
          DataStorage dataStorage = dashboardLayout.getApplicationComponent(DataStorage.class);
-         dataStorage.save(page);
-
-         //Rebuild the UIPage
-         page = dataStorage.getPage(pageId);
-         uiPage.getChildren().clear();
-         PortalDataMapper.toUIPage(uiPage, page);
-
-         uiPortal.setUIPage(pageId, uiPage);
-         uiPortal.refreshUIPage();
+         try
+         {
+            Container updatedModel = dataStorage.save((Container)PortalDataMapper.buildModelObject(dbColumn));
+            dbColumn.getChildren().clear();
+            PortalDataMapper.toUIContainer(dbColumn, updatedModel);
+         }
+         catch (Exception ex)
+         {
+            //TODO: Delete the appWindow
+         }
       }
 
       private UIComponent buildAppWindow(UIDashboardColumn dbColumn, Application app, String appName) throws Exception
