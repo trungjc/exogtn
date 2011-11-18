@@ -424,6 +424,84 @@ public class TestDataStorage extends AbstractConfigTest
       assertNull(storage_.getPage("portal::test::testWindowMove3"));
    }
 
+   //Test methods serving for creation/saving/deletion of container
+   public void testContainerAPI() throws Exception
+   {
+      assertNull(storage_.getPage("portal::test::testContainerAPI"));
+
+      Page page = new Page();
+      page.setOwnerType(PortalConfig.PORTAL_TYPE);
+      page.setOwnerId("test");
+      page.setName("testContainerAPI");
+
+      //For the moment, Container API does not support create/delete a container under a page
+      Container outerContainer = new Container();
+      outerContainer.setStorageName("outerContainer");
+      page.getChildren().add(outerContainer);
+
+      storage_.save(page);
+      page = storage_.getPage("portal::test::testContainerAPI");
+
+      assertNotNull(page);
+      List<ModelObject> children = page.getChildren();
+      assertNotNull(children);
+      assertEquals(1, children.size());
+      ModelObject child = children.get(0);
+      assertTrue(child instanceof Container);
+      outerContainer = (Container)child;
+
+      //Test create container
+      Container transientContainer = new Container();
+      transientContainer.setStorageName("FirstContainer");
+      Application<Portlet> portlet = new Application<Portlet>(ApplicationType.PORTLET);
+      portlet.setState(new TransientApplicationState<Portlet>());
+      portlet.setTitle("testPortlet");
+      transientContainer.getChildren().add(portlet);
+
+      Container newlyCreatedContainer = storage_.create(outerContainer.getStorageId(), transientContainer);
+      assertNotNull(newlyCreatedContainer.getChildren());
+      assertEquals(1, newlyCreatedContainer.getChildren().size());
+      assertTrue(newlyCreatedContainer.getChildren().get(0) instanceof Application);
+
+      Application<Portlet> app = (Application<Portlet>)newlyCreatedContainer.getChildren().get(0);
+      assertEquals("testPortlet", app.getTitle());
+
+      //Test update container
+      Application<Gadget> gadget = new Application<Gadget>(ApplicationType.GADGET);
+      gadget.setState(new TransientApplicationState<Gadget>());
+      gadget.setTitle("testGadget");
+      newlyCreatedContainer.getChildren().add(gadget);
+
+      Container updatedContainer = storage_.save(newlyCreatedContainer);
+      assertNotNull(updatedContainer);
+      assertEquals(newlyCreatedContainer.getStorageId(), updatedContainer.getStorageId());
+      assertNotNull(updatedContainer.getChildren());
+      assertEquals(2, updatedContainer.getChildren().size());
+
+      assertEquals("testPortlet", ((Application)updatedContainer.getChildren().get(0)).getTitle());
+      assertEquals("testGadget", ((Application)updatedContainer.getChildren().get(1)).getTitle());
+
+
+      //Test delete
+      try
+      {
+         storage_.delete(updatedContainer);
+      }
+      catch (Exception ex)
+      {
+         fail("Could not delete a persistent container");
+      }
+
+      page = storage_.getPage("portal::test::testContainerAPI");
+      assertNotNull(page);
+      outerContainer = (Container)page.getChildren().get(0);
+      assertEquals(0, outerContainer.getChildren().size());
+
+      storage_.remove(page);
+
+      assertNull(storage_.getPage("portal::test::testContainerAPI"));
+   }
+
    /**
     * Test that setting a page reference to null will actually remove the page reference from the PageNode
     * @throws Exception
