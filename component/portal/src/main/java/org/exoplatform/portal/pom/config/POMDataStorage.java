@@ -19,19 +19,14 @@
 
 package org.exoplatform.portal.pom.config;
 
-import java.io.ByteArrayInputStream;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
-
 import org.chromattic.api.ChromatticSession;
 import org.exoplatform.commons.utils.IOUtil;
 import org.exoplatform.commons.utils.LazyPageList;
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.portal.application.PortletPreferences;
-import org.exoplatform.portal.config.Query;
 import org.exoplatform.portal.config.NoSuchDataException;
+import org.exoplatform.portal.config.Query;
 import org.exoplatform.portal.config.model.Application;
 import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
@@ -49,6 +44,8 @@ import org.exoplatform.portal.pom.config.tasks.PortletPreferencesTask;
 import org.exoplatform.portal.pom.config.tasks.PreferencesTask;
 import org.exoplatform.portal.pom.config.tasks.SearchTask;
 import org.exoplatform.portal.pom.data.ApplicationData;
+import org.exoplatform.portal.pom.data.ComponentData;
+import org.exoplatform.portal.pom.data.ContainerData;
 import org.exoplatform.portal.pom.data.DashboardData;
 import org.exoplatform.portal.pom.data.Mapper;
 import org.exoplatform.portal.pom.data.ModelChange;
@@ -62,10 +59,15 @@ import org.gatein.mop.api.workspace.ObjectType;
 import org.gatein.mop.api.workspace.Site;
 import org.gatein.mop.api.workspace.WorkspaceObject;
 import org.gatein.mop.api.workspace.ui.UIComponent;
+import org.gatein.mop.api.workspace.ui.UIContainer;
 import org.gatein.mop.api.workspace.ui.UIWindow;
 import org.jibx.runtime.BindingDirectory;
 import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.impl.UnmarshallingContext;
+import java.io.ByteArrayInputStream;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author <a href="mailto:julien.viet@exoplatform.com">Julien Viet</a>
@@ -357,58 +359,172 @@ public class POMDataStorage implements ModelDataStorage
          return null;
       }
    }
-   
-	 public String[] getSiteInfo(String workspaceObjectId) throws Exception
+
+   public String[] getSiteInfo(String workspaceObjectId) throws Exception
    {
-	
-	   POMSession session = pomMgr.getSession();
-	   
-	   WorkspaceObject workspaceObject = session.findObjectById(workspaceObjectId);
-	   
-	   if(workspaceObject instanceof UIComponent)
-	   {
-		   Site site = ((UIComponent)workspaceObject).getPage().getSite();
-		   ObjectType<? extends Site> siteType = site.getObjectType();
-		   
-		   String[] siteInfo = new String[2];
-		   
-		   //Put the siteType on returned map
-		   if(siteType == ObjectType.PORTAL_SITE)
-		   {
-		      siteInfo[0] = PortalConfig.PORTAL_TYPE;
-		   }
-		   else if(siteType == ObjectType.GROUP_SITE)
-		   {
-		      siteInfo[0] = PortalConfig.GROUP_TYPE;
-		   }else if(siteType == ObjectType.USER_SITE)
-		   {
-		      siteInfo[0] = PortalConfig.USER_TYPE;
-		   }
-		   
-		   //Put the siteOwner on returned map
-		   siteInfo[1] = site.getName();
-		   
-		   return siteInfo;
-	   }
+
+      POMSession session = pomMgr.getSession();
+
+      WorkspaceObject workspaceObject = session.findObjectById(workspaceObjectId);
+
+      if (workspaceObject instanceof UIComponent)
+      {
+         Site site = ((UIComponent)workspaceObject).getPage().getSite();
+         ObjectType<? extends Site> siteType = site.getObjectType();
+
+         String[] siteInfo = new String[2];
+
+         //Put the siteType on returned map
+         if (siteType == ObjectType.PORTAL_SITE)
+         {
+            siteInfo[0] = PortalConfig.PORTAL_TYPE;
+         }
+         else if (siteType == ObjectType.GROUP_SITE)
+         {
+            siteInfo[0] = PortalConfig.GROUP_TYPE;
+         }
+         else if (siteType == ObjectType.USER_SITE)
+         {
+            siteInfo[0] = PortalConfig.USER_TYPE;
+         }
+
+         //Put the siteOwner on returned map
+         siteInfo[1] = site.getName();
+
+         return siteInfo;
+      }
 	   
 	   throw new Exception("The provided ID is not associated with an application");
 	}
-   
-	public <S> ApplicationData<S> getApplicationData(String applicationStorageId) throws Exception
-  {
-		// TODO Auto-generated method stub
-	   
-	   POMSession session = pomMgr.getSession();
-	   WorkspaceObject workspaceObject = session.findObjectById(applicationStorageId);
-	   
-	   if(workspaceObject instanceof UIWindow)
-	   {
-		   UIWindow application = (UIWindow)workspaceObject;
-		   Mapper mapper = new Mapper(session);
-		   
-		   ApplicationData data = mapper.load(application);
-		   return data;
-	   }
-	   throw new NoSuchDataException("Could not load the application data specified by the ID: " + applicationStorageId);
-	}
+
+   public <S> ApplicationData<S> getApplicationData(String applicationStorageId) throws Exception
+   {
+      // TODO Auto-generated method stub
+
+      POMSession session = pomMgr.getSession();
+      WorkspaceObject workspaceObject = session.findObjectById(applicationStorageId);
+
+      if (workspaceObject instanceof UIWindow)
+      {
+         UIWindow application = (UIWindow)workspaceObject;
+         Mapper mapper = new Mapper(session);
+
+         ApplicationData data = mapper.load(application);
+         return data;
+      }
+      throw new NoSuchDataException("Could not load the application data specified by the ID: " + applicationStorageId);
+   }
+
+   public ContainerData create(String parentID, ContainerData container) throws Exception
+   {
+      if(container.getStorageId() != null)
+      {
+         throw new IllegalArgumentException("Given container must be transient one");
+      }
+
+      POMSession session = pomMgr.getSession();
+      UIContainer parent = session.findObjectById(ObjectType.CONTAINER, parentID);
+
+      String storageName = container.getStorageName();
+      if(storageName == null)
+      {
+         storageName = UUID.randomUUID().toString();
+      }
+
+      UIContainer workspaceDst = parent.add(ObjectType.CONTAINER, storageName);
+      ContainerData tempPersistContainer =
+         new ContainerData(
+            workspaceDst.getObjectId(),
+            container.getId(),
+            storageName,
+            container.getIcon(),
+            container.getTemplate(),
+            container.getFactoryId(),
+            container.getTitle(),
+            container.getDescription(),
+            container.getWidth(),
+            container.getHeight(),
+            container.getAccessPermissions(),
+            container.getChildren()
+         );
+
+      Mapper mapper = new Mapper(session);
+      mapper.save(tempPersistContainer, workspaceDst);
+      mapper.saveChildren(tempPersistContainer, workspaceDst);
+
+      List<ComponentData> children = mapper.loadChildren(workspaceDst);
+
+      return new ContainerData(
+         tempPersistContainer.getStorageId(),
+         tempPersistContainer.getId(),
+         tempPersistContainer.getName(),
+         tempPersistContainer.getIcon(),
+         tempPersistContainer.getTemplate(),
+         tempPersistContainer.getFactoryId(),
+         tempPersistContainer.getTitle(),
+         tempPersistContainer.getDescription(),
+         tempPersistContainer.getWidth(),
+         tempPersistContainer.getHeight(),
+         tempPersistContainer.getAccessPermissions(),
+         children
+      );
+   }
+
+   public ContainerData save(ContainerData container) throws Exception
+   {
+      String storageID = container.getStorageId();
+      if(storageID == null)
+      {
+         throw new IllegalArgumentException("StorageID of given container is null");
+      }
+
+      POMSession session = pomMgr.getSession();
+      UIContainer dst = session.findObjectById(ObjectType.CONTAINER, storageID);
+
+      if(dst == null)
+      {
+         throw new Exception("Associated workspace object not found");
+      }
+
+      Mapper mapper = new Mapper(session);
+      mapper.save(container, dst);
+      mapper.saveChildren(container, dst);
+
+      List<ComponentData> children = mapper.loadChildren(dst);
+
+      return new ContainerData(
+         storageID,
+         container.getId(),
+         container.getName(),
+         container.getIcon(),
+         container.getTemplate(),
+         container.getFactoryId(),
+         container.getTitle(),
+         container.getDescription(),
+         container.getWidth(),
+         container.getHeight(),
+         container.getAccessPermissions(),
+         children);
+   }
+
+   public boolean delete(ContainerData container) throws Exception
+   {
+      String storageID = container.getStorageId();
+      if(storageID == null)
+      {
+         throw new IllegalArgumentException("StorageID of given container is null");
+      }
+
+      POMSession session = pomMgr.getSession();
+      UIContainer deleteObject = session.findObjectById(ObjectType.CONTAINER, storageID);
+
+      if(deleteObject == null)
+      {
+         throw new Exception("Associated workspace object not found!");
+      }
+
+      deleteObject.getParent().getComponents().remove(deleteObject);
+
+      return true;
+   }
 }

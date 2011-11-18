@@ -245,5 +245,36 @@ public interface DataStorage
    public <A> A adapt(ModelObject modelObject, Class<A> type);
    
    public <A> A adapt(ModelObject modelObject, Class<A> type, boolean create);
-   
+
+   /***********************************
+    * Public API to persist container
+    ***********************************/
+
+
+   /**
+    * Add a container as a child of container specified by given parentID, then return it
+    *
+    * @param parentID
+    * @param container
+    * @return
+    */
+   public Container create(String parentID, Container container) throws Exception;
+
+   /**
+    * Save a persistent container and return it
+    *
+    * @param container
+    * @return
+    */
+   public Container save(Container container) throws Exception;
+
+   /**
+    * Delete a persistent container
+    *
+    * @param parentID
+    * @param container
+    * @return
+    */
+   public boolean delete(Container container) throws Exception;
+
 }

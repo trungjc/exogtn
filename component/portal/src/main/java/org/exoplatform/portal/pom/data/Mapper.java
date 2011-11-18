@@ -281,7 +281,7 @@ public class Mapper
       );
    }
 
-   private List<ComponentData> loadChildren(UIContainer src)
+   public List<ComponentData> loadChildren(UIContainer src)
    {
       if (src == null) throw new NoSuchDataException("Can not load children");
       ArrayList<ComponentData> children = new ArrayList<ComponentData>();
@@ -442,7 +442,7 @@ public class Mapper
       return changes;
    }
 
-   private void save(ContainerData src, UIContainer dst)
+   public void save(ContainerData src, UIContainer dst)
    {
 
       ProtectedResource pr = dst.adapt(ProtectedResource.class);
@@ -488,7 +488,7 @@ public class Mapper
       }
    }
 
-   private LinkedList<ModelChange> saveChildren(final ContainerData src, UIContainer dst)
+   public LinkedList<ModelChange> saveChildren(final ContainerData src, UIContainer dst)
    {
       LinkedList<ModelChange> changes = new LinkedList<ModelChange>();
 

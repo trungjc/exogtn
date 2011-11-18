@@ -37,6 +37,7 @@ import org.exoplatform.portal.config.model.ModelObject;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PortalConfig;
 import org.exoplatform.portal.pom.data.ApplicationData;
+import org.exoplatform.portal.pom.data.ContainerData;
 import org.exoplatform.portal.pom.data.DashboardData;
 import org.exoplatform.portal.pom.data.ModelChange;
 import org.exoplatform.portal.pom.data.ModelData;
@@ -346,4 +347,45 @@ public class DataStorageImpl implements DataStorage
 		     throw ex;
 	    }
 	 }
+
+   public Container create(String parentID, Container container) throws Exception
+   {
+      try
+      {
+         //TODO: Invoke ListenerService
+         ContainerData data = delegate.create(parentID, container.build());
+         return new Container(data);
+      }
+      catch (Exception ex)
+      {
+         throw ex;
+      }
+   }
+
+   public Container save(Container container) throws Exception
+   {
+      try
+      {
+         //TODO: Invoke ListenerService
+         ContainerData data = delegate.save(container.build());
+         return new Container(data);
+      }
+      catch(Exception ex)
+      {
+         throw ex;
+      }
+   }
+
+   public boolean delete(Container container) throws Exception
+   {
+      try
+      {
+         //TODO: Invoke Listener service
+         return delegate.delete(container.build());
+      }
+      catch(Exception ex)
+      {
+         throw ex;
+      }
+   }
 }
