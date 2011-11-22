@@ -75,6 +75,7 @@ import org.gatein.pc.portlet.impl.spi.AbstractServerContext;
 import org.gatein.pc.portlet.impl.spi.AbstractUserContext;
 import org.gatein.pc.portlet.impl.spi.AbstractWindowContext;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -92,11 +93,11 @@ import javax.servlet.http.Cookie;
       @EventConfig(listeners = UIPortletForm.SaveActionListener.class),
       @EventConfig(listeners = UIPortletForm.CloseActionListener.class, phase = Phase.DECODE)}),
    @ComponentConfig(id = "PortletPermission", type = UIFormInputSet.class, lifecycle = UIContainerLifecycle.class)})
-public class UIPortletForm extends UIFormTabPane
+public class UIPortletForm<S, C extends Serializable> extends UIWindowForm<S>
 {
    private static Log log = ExoLogger.getLogger("portal:UIPortletForm");
 
-   private UIPortlet uiPortlet_;
+   private UIPortlet<S, C> uiPortlet_;
 
    private UIComponent backComponent_;
 
@@ -274,6 +275,25 @@ public class UIPortletForm extends UIFormTabPane
             ExceptionUtil.getRootCause(ex));
       }
       return portletContent.toString();
+   }
+
+   @Override
+   public UIPortlet<S, C> save() throws Exception
+   {
+      return this.uiPortlet_;
+   }
+
+   @Override
+   public void load(UIWindow<S> edittedWindow) throws Exception
+   {
+      if(edittedWindow instanceof UIPortlet)
+      {
+         setValues((UIPortlet<S, C>)edittedWindow);
+      }
+      else
+      {
+         throw new AssertionError("Editted window is not portlet window");
+      }
    }
 
    public void setValues(final UIPortlet uiPortlet) throws Exception

@@ -141,10 +141,12 @@ public class PortalDataMapper
       {
          model = (Application<S>)Application.createPortletApplication(uiPortlet.getStorageId());
       }
+      /*
       else if (type == ApplicationType.GADGET)
       {
          model = (Application<S>)Application.createGadgetApplication(uiPortlet.getStorageId());
       }
+      */
       else if (type == ApplicationType.WSRP_PORTLET)
       {
          model = (Application<S>)Application.createWSRPApplication(uiPortlet.getStorageId());
@@ -394,6 +396,7 @@ public class PortalDataMapper
             UIGadget uiGadget = uiContainer.createUIComponent(context, UIGadget.class, null, null);
             uiGadget.setStorageId(application.getStorageId());
             toUIGadget(uiGadget, ga);
+            uiGadget.setInDashboard(dashboard);
             uiComponent = uiGadget;
          }
          else

@@ -21,6 +21,7 @@ package org.exoplatform.portal.webui.application;
 
 import org.exoplatform.application.gadget.Gadget;
 import org.exoplatform.application.gadget.GadgetRegistryService;
+import org.exoplatform.application.registry.Application;
 import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.portal.application.PortalRequestContext;
@@ -28,10 +29,14 @@ import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
 import org.exoplatform.portal.config.model.Properties;
+import org.exoplatform.portal.config.model.TransientApplicationState;
 import org.exoplatform.portal.pom.data.ModelDataStorage;
+import org.exoplatform.portal.webui.portal.UIPortalComponent;
 import org.exoplatform.portal.webui.util.Util;
+import org.exoplatform.portal.webui.workspace.UIPortalApplication;
 import org.exoplatform.web.application.ApplicationMessage;
 import org.exoplatform.webui.application.WebuiRequestContext;
+import org.exoplatform.webui.application.portlet.PortletRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.EventConfig;
 import org.exoplatform.webui.core.UIComponent;
@@ -55,19 +60,15 @@ import javax.servlet.http.HttpServletResponse;
 @ComponentConfig(template = "system:/groovy/portal/webui/application/UIGadget.gtmpl", events = {
    @EventConfig(listeners = UIGadget.SaveUserPrefActionListener.class),
    @EventConfig(listeners = UIGadget.SetNoCacheActionListener.class),
-   @EventConfig(listeners = UIGadget.SetDebugActionListener.class)})
+   @EventConfig(listeners = UIGadget.SetDebugActionListener.class),
+   @EventConfig(name = "DeleteGadget", listeners = UIGadget.DeleteGadgetActionListener.class)
+})
 /**
  * This class represents user interface gadgets, it using UIGadget.gtmpl for
  * rendering UI in eXo. It mapped to Application model in page or container.
  */
-public class UIGadget extends UIComponent
+public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gadget>
 {
-
-   /** The storage id. */
-   private String storageId;
-
-   /** The storage name. */
-   private String storageName;
 
    /** . */
    private ApplicationState<org.exoplatform.portal.pom.spi.gadget.Gadget> state;
@@ -82,6 +83,8 @@ public class UIGadget extends UIComponent
    private String url_;
 
    private GadgetRegistryService gadgetRegistryService = null;
+
+   private boolean inDashboard = false;
 
    public static final String PREF_KEY = "_pref_gadget_";
 
@@ -118,28 +121,7 @@ public class UIGadget extends UIComponent
     */
    public UIGadget()
    {
-      // That value will be overriden when it is mapped onto a data storage
-      storageName = UUID.randomUUID().toString();
-   }
-
-   public String getStorageId()
-   {
-      return storageId;
-   }
-
-   public void setStorageId(String storageId)
-   {
-      this.storageId = storageId;
-   }
-
-   public String getStorageName()
-   {
-      return storageName;
-   }
-
-   public void setStorageName(String storageName)
-   {
-      this.storageName = storageName;
+      super();
    }
 
    public String getId()
@@ -162,6 +144,19 @@ public class UIGadget extends UIComponent
    public ApplicationState<org.exoplatform.portal.pom.spi.gadget.Gadget> getState()
    {
       return state;
+   }
+
+   @Override
+   public void initApplicationState(Application registryModel)
+   {
+      ApplicationState<org.exoplatform.portal.pom.spi.gadget.Gadget> appState = new TransientApplicationState<org.exoplatform.portal.pom.spi.gadget.Gadget>(registryModel.getApplicationName());
+      setState(appState);
+   }
+
+   @Override
+   public Class<? extends UIWindowForm> getFormType()
+   {
+      return UIGadgetForm.class;
    }
 
    public void setState(ApplicationState<org.exoplatform.portal.pom.spi.gadget.Gadget> state)
@@ -453,6 +448,49 @@ public class UIGadget extends UIComponent
       mds.save();
    }
 
+   public void setInDashboard(boolean inDashboard)
+   {
+      this.inDashboard = inDashboard;
+   }
+
+   public boolean isInDashboard()
+   {
+      return this.inDashboard;
+   }
+
+   @Override
+   public boolean showCloseButton(WebuiRequestContext rcontext)
+   {
+      //If gadget is wrapped in dashboard portlet
+      if(rcontext instanceof PortletRequestContext)
+      {
+         return true;
+      }
+      else if(rcontext instanceof PortalRequestContext)
+      {
+         PortalRequestContext pcontext = (PortalRequestContext)rcontext;
+         UIPortalApplication uiPortalApp = (UIPortalApplication)pcontext.getUIApplication();
+         return uiPortalApp.getModeState() == UIPortalApplication.APP_BLOCK_EDIT_MODE || uiPortalApp.getModeState() == UIPortalApplication.CONTAINER_BLOCK_EDIT_MODE;
+      }
+      else
+      {
+         throw new AssertionError();
+      }
+   }
+
+   @Override
+   public boolean showDragControl(WebuiRequestContext rcontext)
+   {
+      if(rcontext instanceof PortletRequestContext)
+      {
+         return false;
+      }
+      else
+      {
+         return showCloseButton(rcontext);
+      }
+   }
+
    /**
     * Initializes a newly created <code>SaveUserPrefActionListener</code>
     * object
@@ -520,4 +558,25 @@ public class UIGadget extends UIComponent
          event.getRequestContext().setResponseComplete(true);
       }
    }
+
+   /**
+    * For unknown reason, deleting gadget via listener in UIPortalComponentActionListener cause error. Hence, we
+    * define this listener for temporary use.
+    */
+   public static class DeleteGadgetActionListener extends EventListener<UIGadget>
+   {
+      @Override
+      public void execute(Event<UIGadget> uiGadgetEvent) throws Exception
+      {
+         UIGadget gadget = uiGadgetEvent.getSource();
+         UIPortalComponent parent = gadget.getParent();
+         parent.removeChildById(gadget.getId());
+         StringBuilder scriptBuilder = new StringBuilder();
+         scriptBuilder.append("eXo.portal.UIPortal.removeComponent('");
+         scriptBuilder.append(gadget.getId());
+         scriptBuilder.append("');");
+         uiGadgetEvent.getRequestContext().getJavascriptManager().addJavascript(scriptBuilder.toString());
+      }
+   }
 }
+

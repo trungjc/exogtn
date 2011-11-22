@@ -29,8 +29,11 @@ import org.exoplatform.portal.config.model.ApplicationType;
 import org.exoplatform.portal.config.model.CloneApplicationState;
 import org.exoplatform.portal.config.model.Container;
 import org.exoplatform.portal.config.model.TransientApplicationState;
+import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.webui.application.PortletState;
+import org.exoplatform.portal.webui.application.UIGadget;
 import org.exoplatform.portal.webui.application.UIPortlet;
+import org.exoplatform.portal.webui.application.UIWindow;
 import org.exoplatform.portal.webui.container.UITabContainer;
 import org.exoplatform.portal.webui.login.UILogin;
 import org.exoplatform.portal.webui.login.UIResetPassword;
@@ -280,14 +283,26 @@ public class UIPortalComponentActionListener
             }
             else
             {
-               Application app = null;
                UIApplicationList appList = uiApp.findFirstComponentOfType(UIApplicationList.class);
-               app = appList.getApplication(sourceId);
+               Application app = appList.getApplication(sourceId);
                ApplicationType applicationType = app.getType();
 
-               //
-               UIPortlet uiPortlet = uiTarget.createUIComponent(UIPortlet.class, null, null);
-               uiPortlet.setDescription(app.getDescription());
+               //Still hardcode here, need to define the class name in ApplicationRegistry 's model
+               Class<? extends UIWindow> clazz = UIPortlet.class;
+               if(applicationType == ApplicationType.GADGET)
+               {
+                  clazz = UIGadget.class;
+               }
+               UIWindow dragedWindow = uiTarget.createUIComponent(clazz, null, null);
+               if (app.getDisplayName() != null)
+               {
+                  dragedWindow.setTitle(app.getDisplayName());
+               }
+               else if (app.getApplicationName() != null)
+               {
+                  dragedWindow.setTitle(app.getApplicationName());
+               }
+               dragedWindow.setDescription(app.getDescription());
                List<String> accessPersList = app.getAccessPermissions();
                String[] accessPers = accessPersList.toArray(new String[accessPersList.size()]);
                for (String accessPer : accessPers)
@@ -297,39 +312,21 @@ public class UIPortalComponentActionListener
                }
                if (accessPers == null || accessPers.length == 0)
                   accessPers = new String[]{UserACL.EVERYONE};
-               uiPortlet.setAccessPermissions(accessPers);
-               UIPage uiPage = uiTarget.getAncestorOfType(UIPage.class);
+               dragedWindow.setAccessPermissions(accessPers);
 
-               // Hardcode on state to fix error while drag/drop Dashboard
-               if ("dashboard/DashboardPortlet".equals(app.getContentId()))
+               //Init application state
+               if(newComponent || "dashboard/DashboardPortlet".equals(app.getContentId()))
                {
-                  TransientApplicationState state = new TransientApplicationState<Object>(app.getContentId());
-                  uiPortlet.setState(new PortletState(state, applicationType));
+                  dragedWindow.initApplicationState(app);
                }
-               else
-               {
-                  ApplicationState state;
-                  // if we have a new portlet added to the page we need for it to have its own state.
-                  // otherwise all new portlets added to a page will have the same state.
-                  if (newComponent)
-                  {
-                     state = new TransientApplicationState<Object>(app.getContentId());
-                  }
-                  // if the portlet is not new, then we should clone it from the original portlet
-                  else
-                  {
-                     state = new CloneApplicationState<Object>(app.getStorageId());
-                  }
-                  uiPortlet.setState(new PortletState(state, applicationType));
-               }
-               uiPortlet.setPortletInPortal(uiTarget instanceof UIPortal);
+               //dragedWindow.setShowEditControl(true);
                
                //TODO Wait to fix issue EXOGTN-213 and then
                //we should get "showInfobar" from current UI portal instead of Storage service
                UIPortal currentPortal = Util.getUIPortal();
                DataStorage storage = uiApp.getApplicationComponent(DataStorage.class);
-               uiPortlet.setShowInfoBar(storage.getPortalConfig(currentPortal.getSiteType().getName(), currentPortal.getName()).isShowInfobar());
-               uiSource = uiPortlet;
+               dragedWindow.setShowInfoBar(storage.getPortalConfig(currentPortal.getSiteType().getName(), currentPortal.getName()).isShowInfobar());
+               uiSource = dragedWindow;
             }
             List<UIComponent> children = uiTarget.getChildren();
             uiSource.setParent(uiTarget);

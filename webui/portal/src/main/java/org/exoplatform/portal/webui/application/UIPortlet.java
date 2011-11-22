@@ -20,13 +20,16 @@
 package org.exoplatform.portal.webui.application;
 
 import org.exoplatform.Constants;
+import org.exoplatform.application.registry.Application;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.application.UserProfileLifecycle;
 import org.exoplatform.portal.application.state.ContextualPropertyManager;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.NoSuchDataException;
+import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
+import org.exoplatform.portal.config.model.TransientApplicationState;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.wsrp.WSRP;
 import org.exoplatform.portal.webui.application.UIPortletActionListener.ChangePortletModeActionListener;
@@ -104,11 +107,11 @@ import java.util.UUID;
    @EventConfig(listeners = ChangePortletModeActionListener.class),
    @EventConfig(listeners = ChangeWindowStateActionListener.class),
    @EventConfig(listeners = DeleteComponentActionListener.class, confirm = "UIPortlet.deletePortlet"),
-   @EventConfig(listeners = EditPortletActionListener.class),
+   @EventConfig(name = "EditPortlet", listeners = UIWindow.EditWindowActionListener.class),
    @EventConfig(phase = Phase.PROCESS, listeners = ProcessActionActionListener.class),
    @EventConfig(phase = Phase.PROCESS, listeners = ServeResourceActionListener.class),
    @EventConfig(phase = Phase.PROCESS, listeners = ProcessEventsActionListener.class)})
-public class UIPortlet<S, C extends Serializable> extends UIApplication
+public class UIPortlet<S, C extends Serializable> extends UIWindow<S>
 {
 
    protected static final Log log = ExoLogger.getLogger("portal:UIPortlet");
@@ -120,12 +123,6 @@ public class UIPortlet<S, C extends Serializable> extends UIApplication
    private static final String WSRP_NAVIGATIONAL_VALUES = "wsrp-navigationalValues";
    private static final AbstractPortalContext PORTAL_CONTEXT = new AbstractPortalContext(Collections.singletonMap(
       "javax.portlet.markup.head.element.support", "true"));
-
-   /** . */
-   private String storageId;
-
-   /** . */
-   private String storageName;
 
    /** . */
    private ModelAdapter<S, C> adapter;
@@ -172,28 +169,7 @@ public class UIPortlet<S, C extends Serializable> extends UIApplication
 
    public UIPortlet()
    {
-      // That value will be overriden when it is mapped onto a data storage
-      storageName = UUID.randomUUID().toString();
-   }
-
-   public String getStorageId()
-   {
-      return storageId;
-   }
-
-   public void setStorageId(String storageId)
-   {
-      this.storageId = storageId;
-   }
-
-   public String getStorageName()
-   {
-      return storageName;
-   }
-
-   public void setStorageName(String storageName)
-   {
-      this.storageName = storageName;
+      super();
    }
 
    public String getWindowId()
@@ -915,6 +891,18 @@ public class UIPortlet<S, C extends Serializable> extends UIApplication
    public PortletState<S> getState()
    {
       return state;
+   }
+
+   public void initApplicationState(Application registryModel)
+   {
+      ApplicationState<S> appState = new TransientApplicationState<S>(registryModel.getContentId());
+      setState(new PortletState<S>(appState, registryModel.getType()));
+   }
+
+   @Override
+   public Class<? extends UIWindowForm> getFormType()
+   {
+      return UIPortletForm.class;
    }
 
    public void setState(PortletState<S> state)

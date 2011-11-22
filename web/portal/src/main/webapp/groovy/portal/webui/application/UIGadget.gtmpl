@@ -37,11 +37,26 @@
 	String unmaxiTitle = _ctx.appRes("UIGadget.tooltip.Unmaximize");
 
 	def standaloneURL = uicomponent.getStandaloneURL();
+def deleteLink;
+if(uicomponent.isInDashboard())
+{
+deleteLink = "eXo.gadget.UIGadget.deleteGadget(this)";
+}
+else
+{
+deleteLink = uicomponent.event("DeleteGadget", id);
+}
 %>
 <div class="UIGadget" id="$id" style="left: $posX; top: $posY; z-Index: $zIndex; width: 100%" >
 	<a style="display:none" href="$standaloneURL"></a>
 	<div class="GadgetControl ClearFix" style="visibility: visible;">
-		<span class="CloseGadget IconControl" onclick="eXo.gadget.UIGadget.deleteGadget(this)" onmousedown="event.cancelBubble=true;" title="<%=_ctx.appRes("UIGadget.tooltip.deleteGadget")%>"></span>
+  <% if(uicomponent.showDragControl(rcontext)){ %>
+<div class="DragControlArea" title="DragControl" onmousedown="eXo.portal.PortalDragDrop.init.call(this,event);"><span></span></div>
+<% } %>
+
+<% if(uicomponent.showCloseButton(rcontext)) { %>
+<span class="CloseGadget IconControl" onclick="$deleteLink" onmousedown="event.cancelBubble=true;" title="<%=_ctx.appRes("UIGadget.tooltip.deleteGadget")%>"></span>
+<% } %>
 		<span class="<%=view.equals(uicomponent.HOME_VIEW) ? "MaximizeGadget" : "RestoreGadget";%> IconControl"
                         onclick="eXo.gadget.UIGadget.maximizeGadget(this)" onmousedown="event.cancelBubble=true;"
                         title="<%=view.equals(uicomponent.HOME_VIEW) ? maxiTitle : unmaxiTitle%>"></span>
