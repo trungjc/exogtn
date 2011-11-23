@@ -35,9 +35,6 @@ import org.exoplatform.portal.webui.application.UIGadget;
 import org.exoplatform.portal.webui.application.UIPortlet;
 import org.exoplatform.portal.webui.container.UIColumnContainer;
 import org.exoplatform.portal.webui.container.UIContainer;
-import org.exoplatform.portal.webui.container.UIDashboardColumn;
-import org.exoplatform.portal.webui.container.UIDashboardColumnContainer;
-import org.exoplatform.portal.webui.container.UIDashboardLayout;
 import org.exoplatform.portal.webui.container.UIDashboardLayoutContainer;
 import org.exoplatform.portal.webui.container.UITabContainer;
 import org.exoplatform.portal.webui.page.UIPage;
@@ -425,18 +422,6 @@ public class PortalDataMapper
          else if ("DashboardLayoutContainer".equals(container.getFactoryId()))
          {
             uiTempContainer = uiContainer.createUIComponent(context, UIDashboardLayoutContainer.class, null, null);
-         }
-         else if ("DashboardLayout".equals(container.getFactoryId()))
-         {
-            uiTempContainer = uiContainer.createUIComponent(context, UIDashboardLayout.class, null, null);
-         }
-         else if ("DashboardColumnContainer".equals(container.getFactoryId()))
-         {
-            uiTempContainer = uiContainer.createUIComponent(context, UIDashboardColumnContainer.class, null, null);
-         }
-         else if ("DashboardColumn".equals(container.getFactoryId()))
-         {
-            uiTempContainer = uiContainer.createUIComponent(context, UIDashboardColumn.class, null, null);
          }
          else
          {

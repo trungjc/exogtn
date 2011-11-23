@@ -18,138 +18,115 @@
  */
 package org.exoplatform.portal.webui.container;
 
-import org.exoplatform.application.registry.Application;
-import org.exoplatform.application.registry.ApplicationRegistryService;
-import org.exoplatform.portal.application.PortalRequestContext;
-import org.exoplatform.portal.config.DataStorage;
-import org.exoplatform.portal.config.UserACL;
-import org.exoplatform.portal.config.model.ApplicationState;
-import org.exoplatform.portal.config.model.ApplicationType;
-import org.exoplatform.portal.config.model.Container;
-import org.exoplatform.portal.config.model.Page;
-import org.exoplatform.portal.config.model.TransientApplicationState;
-import org.exoplatform.portal.pom.spi.gadget.Gadget;
-import org.exoplatform.portal.webui.application.PortletState;
-import org.exoplatform.portal.webui.application.UIGadget;
-import org.exoplatform.portal.webui.application.UIPortlet;
-import org.exoplatform.portal.webui.page.UIPage;
-import org.exoplatform.portal.webui.portal.UIPortal;
-import org.exoplatform.portal.webui.util.PortalDataMapper;
-import org.exoplatform.portal.webui.util.Util;
-import org.exoplatform.webui.config.annotation.ComponentConfig;
-import org.exoplatform.webui.config.annotation.EventConfig;
-import org.exoplatform.webui.core.UIComponent;
-import org.exoplatform.webui.event.Event;
-import org.exoplatform.webui.event.EventListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
+
+import org.exoplatform.application.registry.Application;
+import org.exoplatform.application.registry.ApplicationCategory;
+import org.exoplatform.application.registry.ApplicationRegistryService;
+import org.exoplatform.portal.config.UserACL;
+import org.exoplatform.portal.config.model.ApplicationType;
+import org.exoplatform.portal.webui.util.Util;
+import org.exoplatform.webui.application.WebuiRequestContext;
+import org.exoplatform.webui.config.annotation.ComponentConfig;
+import org.exoplatform.webui.core.lifecycle.UIFormLifecycle;
 
 /**
  * @author <a href="hoang281283@gmail.com">Minh Hoang TO</a>
  * @date 11/15/11
  */
-@ComponentConfig(template = "system:/groovy/portal/webui/container/UIDashboardContentList.gtmpl",
-events = {@EventConfig(listeners = UIDashboardContentList.AddContentActionListener.class)})
+@ComponentConfig(template = "classpath:groovy/dashboard/webui/component/UIDashboardSelectContainer.gtmpl", lifecycle = UIFormLifecycle.class)
 public class UIDashboardContentList extends org.exoplatform.webui.core.UIContainer
 {
 
-   //TODO: Don't cache application list like this
-   private List<Application> applications;
+   private List<ApplicationCategory> categories;
+
+   private ApplicationCategory selectedCategory;
 
    public UIDashboardContentList() throws Exception
    {
-      super();
-
-      ApplicationRegistryService appRegistry = getApplicationComponent(ApplicationRegistryService.class);
-      applications = appRegistry.getAllApplications();
+//      addChild(UIAddGadgetForm.class, null, null);
    }
 
-   private Application getApplicationByName(String name)
+   public void setSelectedCategory(ApplicationCategory category)
    {
-      for(Application app : applications)
-      {
-         if(name.equals(app.getApplicationName()))
-         {
-            return app;
-         }
-      }
-      return null;
+      selectedCategory = category;
    }
 
-   public static class AddContentActionListener extends EventListener<UIDashboardContentList>
+   public ApplicationCategory getSelectedCategory()
    {
-      @Override
-      public void execute(Event<UIDashboardContentList> uiContentListEvent) throws Exception
+      return selectedCategory;
+   }
+
+   public final List<ApplicationCategory> getCategories() throws Exception
+   {
+      ApplicationRegistryService service = getApplicationComponent(ApplicationRegistryService.class);
+      UserACL acl = Util.getUIPortalApplication().getApplicationComponent(UserACL.class);
+
+      String remoteUser = ((WebuiRequestContext)WebuiRequestContext.getCurrentInstance()).getRemoteUser();
+      List<ApplicationCategory> listCategories = new ArrayList<ApplicationCategory>();
+
+      Iterator<ApplicationCategory> appCateIte = service.getApplicationCategories(remoteUser, ApplicationType.GADGET).iterator();
+      while (appCateIte.hasNext())
       {
-         UIDashboardContentList contentList = uiContentListEvent.getSource();
-         PortalRequestContext prContext = (PortalRequestContext)uiContentListEvent.getRequestContext();
-
-         String appName = prContext.getRequestParameter(UIComponent.OBJECTID);
-         Application app = contentList.getApplicationByName(appName);
-
-         if (app == null)
+         ApplicationCategory cate = appCateIte.next();
+         for(String p : cate.getAccessPermissions())
          {
-            System.out.println("Application not found");
-            return;
-         }
-
-
-         UIDashboardLayout dashboardLayout = contentList.getAncestorOfType(UIDashboardLayout.class);
-         UIDashboardColumnContainer columnContainer = dashboardLayout.getChild(UIDashboardColumnContainer.class);
-
-         int numberOfColumns = columnContainer.getChildren().size();
-         int randomIndex = new Random().nextInt(numberOfColumns);
-
-         UIDashboardColumn dbColumn = columnContainer.getChild(randomIndex);
-         UIComponent appWindow = buildAppWindow(dbColumn, app, appName);
-         dbColumn.addChild(appWindow);
-
-         DataStorage dataStorage = dashboardLayout.getApplicationComponent(DataStorage.class);
-         try
-         {
-            Container updatedModel = dataStorage.save((Container)PortalDataMapper.buildModelObject(dbColumn));
-            dbColumn.getChildren().clear();
-            PortalDataMapper.toUIContainer(dbColumn, updatedModel);
-         }
-         catch (Exception ex)
-         {
-            //TODO: Delete the appWindow
-         }
-      }
-
-      private UIComponent buildAppWindow(UIDashboardColumn dbColumn, Application app, String appName) throws Exception
-      {
-         if (app.getType() == ApplicationType.PORTLET || app.getType() == ApplicationType.WSRP_PORTLET)
-         {
-            UIPortlet uiPortlet = dbColumn.createUIComponent(UIPortlet.class, null, null);
-            uiPortlet.setDescription(app.getDescription());
-            List<String> accessPersList = app.getAccessPermissions();
-            String[] accessPers = accessPersList.toArray(new String[accessPersList.size()]);
-            for (String accessPer : accessPers)
+            if(acl.hasPermission(p))
             {
-               if (accessPer.equals(""))
-               { accessPers = null; }
+               List<Application> listGadgets = cate.getApplications();
+               if (listGadgets != null && listGadgets.size() > 0)
+               {
+                  listCategories.add(cate);
+                  break;
+               }               
             }
-            if (accessPers == null || accessPers.length == 0)
-            { accessPers = new String[]{UserACL.EVERYONE}; }
-            uiPortlet.setAccessPermissions(accessPers);
-
-            ApplicationState state = new TransientApplicationState<Object>(app.getContentId());
-            uiPortlet.setState(new PortletState(state, app.getType()));
-
-            return uiPortlet;
          }
-         else if (app.getType() == ApplicationType.GADGET)
+         
+      }
+      Collections.sort(listCategories, new Comparator<ApplicationCategory>()
+      {
+         public int compare(ApplicationCategory cate1, ApplicationCategory cate2)
          {
-            UIGadget uiGadget = dbColumn.createUIComponent(UIGadget.class, null, null);
-            uiGadget.setState(new TransientApplicationState<Gadget>(appName));
-
-            return uiGadget;
+            return cate1.getDisplayName().compareToIgnoreCase(cate2.getDisplayName());
          }
-         else
+      });
+      categories = listCategories;
+      return categories;
+   }
+
+   public void setCategories(final List<ApplicationCategory> categories) throws Exception
+   {
+      this.categories = categories;
+   }
+
+   public List<Application> getGadgetsOfCategory(final ApplicationCategory appCategory) throws Exception
+   {
+      UserACL acl = Util.getUIPortalApplication().getApplicationComponent(UserACL.class);
+      List<Application> listGadgets = new ArrayList<Application>();
+      Iterator<Application> gadgetIterator = appCategory.getApplications().iterator();
+      while(gadgetIterator.hasNext())
+      {
+         Application app = gadgetIterator.next();
+         for(String p : app.getAccessPermissions())
          {
-            throw new IllegalArgumentException("We supports only portlet or gadget");
+            if(acl.hasPermission(p))
+            {
+               listGadgets.add(app);
+               break;
+            }
          }
       }
+      Collections.sort(listGadgets, new Comparator<Application>()
+      {
+         public int compare(Application app1, Application app2)
+         {
+            return app1.getDisplayName().compareToIgnoreCase(app2.getDisplayName());
+         }
+      });
+      return listGadgets;
    }
 }
