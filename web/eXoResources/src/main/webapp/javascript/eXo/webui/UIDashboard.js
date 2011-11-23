@@ -19,6 +19,7 @@
 
 function UIDashboard() {
 	
+	this.containerClass = "UIDashboardLayoutContainer";
 	var currCol = null;	
 	var targetObj = null;
 	
@@ -29,7 +30,7 @@ function UIDashboard() {
 
 		dragObj.onDragStart = function(x, y, lastMouseX, lastMouseY, e) {
 			var uiDashboard = eXo.webui.UIDashboard ;
-			var dashboardContainer = DOMUtil.findAncestorByClass(dragObj, "UIDashboardLayoutContainer");
+			var dashboardContainer = DOMUtil.findAncestorByClass(dragObj, eXo.webui.UIDashboard.containerClass);
 			if(!dashboardContainer) return;
 			
 			var ggwidth = dragObj.offsetWidth;
@@ -96,7 +97,7 @@ function UIDashboard() {
 		
 		dragObj.onDrag = function(nx, ny, ex, ey, e) {	
 			var uiTarget = targetObj;
-			var dashboardCont = DOMUtil.findAncestorByClass(dragObj, "UIDashboardLayoutContainer");
+			var dashboardCont = DOMUtil.findAncestorByClass(dragObj, eXo.webui.UIDashboard.containerClass);
 			if(!dashboardCont) return;		
 			
 //			eXo.webui.UIDashboard.scrollOnDrag(dragObj);
@@ -168,7 +169,7 @@ function UIDashboard() {
 	
 		dragObj.onDragEnd = function(x, y, clientX, clientY) {
 			var uiDashboardUtil = eXo.webui.UIDashboardUtil;
-			var dashboardCont = DOMUtil.findAncestorByClass(dragObj, "UIDashboardLayoutContainer");			
+			var dashboardCont = DOMUtil.findAncestorByClass(dragObj, eXo.webui.UIDashboard.containerClass);			
 			if(!dashboardCont) return;
 			
 			var masks = DOMUtil.findDescendantsByClass(dashboardCont, "div", "UIMask");
@@ -242,23 +243,14 @@ function UIDashboard() {
 	UIDashboard.prototype.onLoad = function(dashboardId, canEdit) {
 		var uiDashboard = document.getElementById(dashboardId);
 		if(!uiDashboard) return;
-		
-		var DOMUtil = eXo.core.DOMUtil;
-//		var portletFragment = DOMUtil.findAncestorByClass(uiDashboard, "PORTLET-FRAGMENT") ;
-//		var uiContainer = DOMUtil.findFirstDescendantByClass(uiDashboard, "div", "UIDashboardContainer");
-//		if(!uiContainer) return;
-		
-//		var gadgetContainer = DOMUtil.findFirstChildByClass(uiContainer, "div", "GadgetContainer");
 		uiDashboard.style.overflow = "hidden";
-//		portletFragment.style.overflow = "hidden" ;
-//		if(eXo.core.Browser.isIE6()) gadgetContainer.style.width = "99.5%";
 		
-//		var selectPopup = DOMUtil.findPreviousElementByTagName(uiContainer, "div");
-//		var closeButton = DOMUtil.findFirstDescendantByClass(selectPopup, "a", "CloseButton");	
-//		closeButton.onclick = eXo.webui.UIDashboard.showHideSelectContainer;
-		
-//		var colsContainer = DOMUtil.findFirstChildByClass(gadgetContainer, "div", "UIColumns");
-//		colsContainer.style.width = "100%" ;
+		var DOMUtil = eXo.core.DOMUtil;		
+		var selectPopup = DOMUtil.findFirstDescendantByClass(uiDashboard, "div", "UIPopupWindow");
+		if (selectPopup) {
+			var closeButton = DOMUtil.findFirstDescendantByClass(selectPopup, "a", "CloseButton");	
+			closeButton.onclick = eXo.webui.UIDashboard.showHideSelectContainer;			
+		}
 		
 		//Todo: nguyenanhkien2a@gmail.com
 		//We set and increase waiting time for initDragDrop function to make sure all UI (tag, div, iframe, etc) 
@@ -295,7 +287,7 @@ function UIDashboard() {
 	UIDashboard.prototype.initPopup = function(popup) {
 		if(typeof(popup) == "string") popup = document.getElementById(popup);
 		if(!popup || popup.style.display == "none") return;
-		var uiDashboard = eXo.core.DOMUtil.findAncestorByClass(popup, "UIDashboard");
+		var uiDashboard = eXo.core.DOMUtil.findAncestorByClass(popup, eXo.webui.UIDashboard.containerClass);
 		var deltaY = Math.ceil((uiDashboard.offsetHeight - popup.offsetHeight) / 2);
 		if (deltaY < 0) {
 			deltaY = 0;
@@ -334,24 +326,18 @@ function UIDashboard() {
 		if(!event) event = window.event;
 		var DOMUtil = eXo.core.DOMUtil;
 		var comp = eXo.core.Browser.getEventSource(event);
-		var uiDashboardPortlet = DOMUtil.findAncestorByClass(comp, "UIDashboard");
-		var portletFragment = DOMUtil.findAncestorByClass(uiDashboardPortlet, "PORTLET-FRAGMENT");
-		var uiContainer = DOMUtil.findFirstDescendantByClass(uiDashboardPortlet, "div", "UIDashboardContainer");
-		var uiSelectPopup = DOMUtil.findPreviousElementByTagName(uiContainer, "div");
+		var uiContainer = DOMUtil.findAncestorByClass(comp, eXo.webui.UIDashboard.containerClass);
+		var uiSelectPopup = DOMUtil.findFirstDescendantByClass(uiContainer, "div", "UIPopupWindow");
 		var addButton = DOMUtil.findFirstDescendantByClass(uiContainer, "a", "AddIcon");
 
-		var params;
 		if(uiSelectPopup.style.display != "none") {
-			uiSelectPopup.style.visibility = "hidden";
 			uiSelectPopup.style.display = "none";
 			addButton.style.visibility = "visible";
-			params = [{name: "isShow", value: false}];
-			var url = eXo.webui.UIDashboardUtil.createRequest(portletFragment.parentNode.id, "SetShowSelectContainer", params);
+			var url = eXo.webui.UIDashboardUtil.createRequest(uiContainer.id, "SetShowSelectContainer", null);
 			ajaxAsyncGetRequest(url, false);
 		} else {
 			addButton.style.visibility = "hidden";
-			params = [{name: "isShow", value: true}];
-			var url = eXo.webui.UIDashboardUtil.createRequest(portletFragment.parentNode.id, "SetShowSelectContainer", params);
+			var url = eXo.webui.UIDashboardUtil.createRequest(uiContainer.id, "SetShowSelectContainer", null);
 			ajaxGet(url);
 		}
 	};
@@ -387,31 +373,7 @@ function UIDashboard() {
 		}	else {
 			popupContent.style.height = "auto";
 		}	
-	};
-	/**
-	 * Change disabled object to enable state
-	 * @param {Object} elemt object to enable
-	 */
-	UIDashboard.prototype.enableContainer = function(elemt) {
-		var DOMUtil = eXo.core.DOMUtil;
-		if(DOMUtil.hasClass(elemt, "DisableContainer")) {
-			DOMUtil.replaceClass(elemt, " DisableContainer", "");
-		}
-		var arrow = DOMUtil.findFirstChildByClass(elemt, "div", "Arrow");
-		if(DOMUtil.hasClass(arrow, "DisableArrowIcon")) DOMUtil.replaceClass(arrow," DisableArrowIcon", "");
-	};
-	 /**
-   * Change object to disable state
-   * @param {Object} elemt object to enable
-   */
-	UIDashboard.prototype.disableContainer = function(elemt) {
-		var DOMUtil = eXo.core.DOMUtil;
-		if(!DOMUtil.hasClass(elemt, "DisableContainer")) {
-			DOMUtil.addClass(elemt, "DisableContainer");
-		}
-		var arrow = DOMUtil.findFirstChildByClass(elemt, "div", "Arrow");
-		if(!DOMUtil.hasClass(arrow, "DisableArrowIcon")) DOMUtil.addClass(arrow," DisableArrowIcon");
-	};
+	};	
 	
 	UIDashboard.prototype.scrollOnDrag = function(dragObj) {
 		var DOMUtil = eXo.core.DOMUtil;

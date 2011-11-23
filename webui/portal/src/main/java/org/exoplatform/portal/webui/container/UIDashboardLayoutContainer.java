@@ -18,10 +18,13 @@
  */
 package org.exoplatform.portal.webui.container;
 
+import java.util.List;
+
 import org.exoplatform.application.registry.Application;
 import org.exoplatform.application.registry.ApplicationRegistryService;
 import org.exoplatform.portal.config.DataStorage;
-import org.exoplatform.portal.config.model.Container;
+import org.exoplatform.portal.config.UserACL;
+import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.TransientApplicationState;
 import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.webui.application.UIGadget;
@@ -29,6 +32,7 @@ import org.exoplatform.portal.webui.page.UIPage;
 import org.exoplatform.portal.webui.portal.UIPortal;
 import org.exoplatform.portal.webui.util.PortalDataMapper;
 import org.exoplatform.portal.webui.util.Util;
+import org.exoplatform.portal.webui.workspace.UIPortalApplication;
 import org.exoplatform.web.application.ApplicationMessage;
 import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
@@ -60,6 +64,17 @@ public class UIDashboardLayoutContainer extends UIContainer
       popup.setUIComponent(createUIComponent(UIDashboardContentList.class, null, null));
    }
 
+   @Override
+   public void processRender(WebuiRequestContext context) throws Exception
+   {
+      UIPortalApplication uiApp = Util.getUIPortalApplication();
+      if (uiApp.getModeState() != UIPortalApplication.NORMAL_MODE)
+      {
+         getChild(UIPopupWindow.class).setShow(false);
+      }
+      super.processRender(context);
+   }
+
    public static class AddNewGadgetActionListener extends EventListener<UIDashboardLayoutContainer>
    {
       @Override
@@ -81,22 +96,56 @@ public class UIDashboardLayoutContainer extends UIContainer
          {
             UIApplication uiApplication = context.getUIApplication();
             uiApplication.addMessage(new ApplicationMessage("UIDashboard.msg.ApplicationNotExisted", null));
-//            context.setAttribute(UIDashboard.APP_NOT_EXIST, true);
+            // context.setAttribute(UIDashboard.APP_NOT_EXIST, true);
             return;
          }
-         UIGadget uiGadget = event.getSource().createUIComponent(context, UIGadget.class, null, null);
+                  
+         UIGadget uiGadget = event.getSource().createUIComponent(context, UIGadget.class, null, null);         
+         if (application.getDisplayName() != null)
+         {
+            uiGadget.setTitle(application.getDisplayName());
+         }
+         else if (application.getApplicationName() != null)
+         {
+            uiGadget.setTitle(application.getApplicationName());
+         }
+         uiGadget.setDescription(application.getDescription());
+         List<String> accessPersList = application.getAccessPermissions();
+         String[] accessPers = accessPersList.toArray(new String[accessPersList.size()]);
+         for (String accessPer : accessPers)
+         {
+            if (accessPer.equals(""))
+               accessPers = null;
+         }
+         if (accessPers == null || accessPers.length == 0)
+            accessPers = new String[]{UserACL.EVERYONE};
+         uiGadget.setAccessPermissions(accessPers);
+         
          uiGadget.setState(new TransientApplicationState<Gadget>(application.getApplicationName()));
-         
+
          UIColumnContainer column = uiDashboard.getChildById(col);
-         column.getChildren().add(position, uiGadget);         
+         column.getChildren().add(position, uiGadget);
          uiGadget.setParent(column);
-         
+
          // Save
          DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);
          UIPortal uiPortal = Util.getUIPortal();
          UIPage uiPage = uiPortal.findFirstComponentOfType(UIPage.class);
-         storage.save(PortalDataMapper.toPageModel(uiPage));
+         Page page = PortalDataMapper.toPageModel(uiPage);
+         storage.save(page);
          
+         // Synchronize model object with UIPage object, that seems  redundant but in fact
+         // mandatory to have consequent edit actions (on the same page) work properly
+         page = storage.getPage(page.getPageId());
+         uiPage.getChildren().clear();
+         PortalDataMapper.toUIPage(uiPage, page);
+         
+         // Update UIPage cache on UIPortal
+         uiPortal.setUIPage(page.getId(), uiPage);
+         uiPortal.refreshUIPage();
+
+         uiDashboard = uiPage.findComponentById(uiDashboard.getId());
+         uiDashboard.getChild(UIPopupWindow.class).setShow(true);
          context.addUIComponentToUpdateByAjax(uiDashboard);
       }
    }
@@ -119,22 +168,22 @@ public class UIDashboardLayoutContainer extends UIContainer
          UIColumnContainer newColumn = uiDashboard.getChildById(col);
          UIGadget uiGadget = uiDashboard.findComponentById(objectId);
          UIColumnContainer oldColumn = uiGadget.getParent();
-         
-         //Move
+
+         // Move
          oldColumn.removeChildById(objectId);
-         newColumn.getChildren().add(position, uiGadget);      
+         newColumn.getChildren().add(position, uiGadget);
          uiGadget.setParent(newColumn);
-         
+
          // Save
          DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);
          UIPortal uiPortal = Util.getUIPortal();
          UIPage uiPage = uiPortal.findFirstComponentOfType(UIPage.class);
          storage.save(PortalDataMapper.toPageModel(uiPage));
-         
-//         if (context.getAttribute(SAVE_FAIL) != null)
-//         {
-//            return;
-//         }
+
+         // if (context.getAttribute(SAVE_FAIL) != null)
+         // {
+         // return;
+         // }
          Util.getPortalRequestContext().setResponseComplete(true);
       }
    }
@@ -144,16 +193,21 @@ public class UIDashboardLayoutContainer extends UIContainer
       public final void execute(final Event<UIDashboardLayoutContainer> event) throws Exception
       {
          UIDashboardLayoutContainer uiDashboard = (UIDashboardLayoutContainer)event.getSource();
-         uiDashboard.getChild(UIPopupWindow.class).setShow(true);
-         event.getRequestContext().addUIComponentToUpdateByAjax(uiDashboard.getChild(UIPopupWindow.class));
+         UIPopupWindow popupWindow = uiDashboard.getChild(UIPopupWindow.class);
+         popupWindow.setShow(!popupWindow.isShow());
 
-         // String windowId = "";
-         // event
-         // .getRequestContext()
-         // .getJavascriptManager()
-         // .addCustomizedOnLoadScript(
-         // "eXo.webui.UIDashboard.onLoad('" + windowId + "'," +
-         // uiDashboard.canEdit() + ");");
+         WebuiRequestContext context = event.getRequestContext();
+         if (popupWindow.isShow())
+         {
+            context.addUIComponentToUpdateByAjax(uiDashboard.getChild(UIPopupWindow.class));
+         }
+         else
+         {
+            context.setResponseComplete(true);
+         }
+
+         context.getJavascriptManager().addCustomizedOnLoadScript(
+            "eXo.webui.UIDashboard.onLoad('" + uiDashboard.getId() + "'," + uiDashboard.hasPermission() + ");");
       }
    }
 }
