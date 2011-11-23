@@ -59,7 +59,7 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
   var DOMUtil = eXo.core.DOMUtil;
   if(!eXo.portal.portalMode || eXo.portal.isInDragging) return;
 	if(eXo.portal.portalMode <= 2 && DOMUtil.hasClass(portlet, "UIContainer")) return;
-	if(eXo.portal.portalMode > 2 && eXo.portal.portalMode != 4 && DOMUtil.hasClass(portlet, "UIPortlet")) return;
+	if(eXo.portal.portalMode === 3 && (DOMUtil.hasClass(portlet, "UIPortlet") || DOMUtil.hasClass(portlet, "UIGadget"))) return;
 	
 	if(!event) event = window.event;
 	event.cancelBubble = true;
@@ -284,12 +284,14 @@ UIPortal.prototype.showViewMode = function() {
 
 /**
  * Return the closest container of the element.
- * It might be one of these : UIPortlet, UIContainer, UIPageBody, UIPortal
+ * It might be one of these : UIPortlet, UIContainer, UIPageBody, UIPortal, UIGadget
  */
 UIPortal.prototype.findUIComponentOf = function(element) {
   var DOMUtil = eXo.core.DOMUtil;
   var parent;
   if (parent = DOMUtil.findAncestorByClass(element, "UIPortlet")) {
+    return parent;
+  } else if (parent = DOMUtil.findAncestorByClass(element, "UIGadget")) {
     return parent;
   } else if (parent = DOMUtil.findAncestorByClass(element, "UIPageBody")) {
      return parent;

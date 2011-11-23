@@ -1,48 +1,96 @@
-<%
-  import org.exoplatform.portal.webui.container.UIDashboardLayout;
+<%	
+	import org.exoplatform.commons.utils.ExpressionUtil;
 	import org.exoplatform.portal.webui.workspace.UIPortalApplication;
-
-	def rcontext = _ctx.getRequestContext();
-
+	import org.exoplatform.webui.core.UIPopupWindow;
+	import org.exoplatform.portal.webui.application.UIGadget;
+	
+	def rcontext = _ctx.getRequestContext(); 
+	ResourceBundle res = rcontext.getApplicationResourceBundle(); 
+	
 	UIPortalApplication uiPortalApp = rcontext.getUIApplication();
+	boolean hasPermission = uicomponent.hasPermission();
+	if(!uiPortalApp.isEditing() && !hasPermission) return;
+	
+	/** Trim the prefix UIContainer- if any, this hardcoded part is needed to update nested container via Ajax */
+	String componentId = uicomponent.getId();
+	if(componentId.startsWith("UIContainer-")){
+		uicomponent.setId(componentId.substring("UIContainer-".length()));
+	}	
+	
+	rcontext.getJavascriptManager().addCustomizedOnLoadScript("eXo.webui.UIDashboard.onLoad('" + 
+			uicomponent.id + "'," + hasPermission + ");") ;
 %>
-
-
-<div class="UIContainer <%= uiPortalApp.isEditing()?"EdittingContainer":"";%>"
-				id="<%=uicomponent.getId();%>"
-				onmouseover="eXo.portal.UIPortal.blockOnMouseOver(event, this, true);"
+<div class="UIContainer UIDashboardLayoutContainer <%=uiPortalApp.isEditing()?"EdittingContainer":""%> <%=hasPermission?"":"ProtectedContainer"%>" 
+				id="${uicomponent.id}" 
+				onmouseover="eXo.portal.UIPortal.blockOnMouseOver(event, this, true);" 
 				onmouseout="eXo.portal.UIPortal.blockOnMouseOver(event, this, false);">
-<div class="NormalContainerBlock UIComponentBlock">
-
-
-<% if(uiPortalApp.isEditing())
-	{
-%>
-
-<div class="LAYOUT-CONTAINER LAYOUT-BLOCK">
-	<div>
-		<div class="UIRowContainer EmptyContainer">
-
-
-
+	<div class="NormalContainerBlock UIComponentBlock">
+		<% 
+			int portalMode = uiPortalApp.getModeState();
+			String style = "";
+			String width	= uicomponent.getWidth();
+			String height	= uicomponent.getHeight();
+			if(width != null) style += "width:"+width+";";
+			if(height != null) style += "height:"+height+";";
+			if(portalMode == uiPortalApp.CONTAINER_BLOCK_EDIT_MODE || portalMode == uiPortalApp.APP_BLOCK_EDIT_MODE){
+		%>
+		<div class="LAYOUT-CONTAINER LAYOUT-BLOCK">
+		<%} else {%>
+		<div class="VIEW-CONTAINER VIEW-BLOCK">
+		<%} %>
+			<div>
+				<%
+				if(hasPermission) {
+					def popupWindow = uicomponent.getChild(UIPopupWindow.class);
+				%>		
+				<a class="AddIcon" style="visibility: <%= popupWindow.isShow() ? "hidden" : "visible"%>;" 
+								href="#" onclick="eXo.webui.UIDashboard.showHideSelectContainer(event);return false;">
+					<%=_ctx.appRes("UIDashboardContainer.label.openWorkspace");%>
+				</a>
+				<div class="NoGadget" style="display: <%=uicomponent.findFirstComponentOfType(UIGadget.class) != null ? "none" : "block"%>">
+					<%= _ctx.appRes("UIDashboardContainer.msg.addGadget"); %>
+				</div>
+				<table class="UIDashboardColumn" style="table-layout: fixed; margin: 0px auto; $style">
+					<tr class="TRContainer">
+						<% for(uiChild in uicomponent.getChildren()) {
+						   	  if (uiChild instanceof UIPopupWindow) continue;
+						%>
+							<td class="${uiChild.id}TDContainer TDContainer" <% if(uiChild.getWidth()) { %> width="<%= uiChild.getWidth(); %>" <% } %>><% uicomponent.renderUIComponent(uiChild) %></td>
+						<% } %>
+				 </tr>
+				</table>								
+				<%
+					if (!uiPortalApp.isEditing()) {
+					   uicomponent.renderChild(popupWindow);
+					}
+				} else {print "<div class='ProtectedContent'>"+_ctx.appRes("UIPortlet.label.protectedContent")+"</div>";}%>
+			</div>		
 		</div>
+		<%/*Debug On IE	-----For DND */%>
+		
+		<%if(portalMode != UIPortalApplication.NORMAL_MODE){%>
+		<div class="EDITION-BLOCK EDITION-CONTAINER" style="display: none;position: relative;">
+			<div style="position: absolute; top: -86px;">
+				<div class="NewLayer" style="display: none; visibility: hidden;"><span></span></div>
+				<div class="CONTROL-CONTAINER CONTROL-BLOCK UIInfoBar">
+					<%/*Begin InfoBar*/%>
+					<div class="BlueRoundedStyle ClearFix">
+						<div class="DragControlArea" title="<%=_ctx.appRes("UIDashboardLayoutContainer.title.DragControlArea")%>" onmousedown="eXo.portal.PortalDragDrop.init.call(this,event);"><span></span></div>
+						<% 
+							String strTitle = uicomponent.getTitle() != null ?
+										ExpressionUtil.getExpressionValue(res, uicomponent.getTitle()) :
+										_ctx.appRes("UIDashboardLayoutContainer.title.Container");
+						%>
+						<div class="ContainerIcon DefaultContainer16x16Icon"><%=hasPermission ? strTitle : _ctx.appRes("UIPortlet.label.protectedContent")%></div>
+						<%if(hasPermission) {%>
+							<a href="<%=uicomponent.event("EditContainer","$uicomponent.id")%>" class="EditIcon" title="<%=_ctx.appRes("UIDashboardLayoutContainer.tooltip.editContainer")%>"></a>
+							<a href="<%=uicomponent.event("DeleteComponent","$uicomponent.id")%>" class="DeleteIcon" title="<%=_ctx.appRes("UIDashboardLayoutContainer.tooltip.closeContainer")%>"></a>
+						<%}%>
+					</div>
+					<%/*End InfoBar*/ %>
+				</div>
+			</div>
+		</div>
+		<%} %>
 	</div>
-</div>
-<% } else { %>
-
-
-
-
-
-<div class="VIEW-CONTAINER VIEW-BLOCK">
-
-<div class="UIContainer">
-	<% uicomponent.renderChildren(); %>
-</div>
-
-</div>
-
-<% } %>
-
-</div>
 </div>

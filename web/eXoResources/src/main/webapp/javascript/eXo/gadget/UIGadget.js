@@ -93,17 +93,11 @@ eXo.gadget.UIGadget = {
      * @param {String} metadata metadata of gadget
      */
     init : function(uiGadget, inDesktop, metadata) {
-        var portletFragment = eXo.core.DOMUtil.findAncestorByClass(uiGadget, "PORTLET-FRAGMENT");
-        if (portletFragment == null) {
-            uiGadget.onmouseover = eXo.gadget.UIGadget.showGadgetControl;
-            uiGadget.onmouseout = eXo.gadget.UIGadget.hideGadgetControl;
-        } else {
-            var gadgetControl = eXo.core.DOMUtil.findFirstDescendantByClass(uiGadget, "div", "GadgetControl");
-            gadgetControl.style.display = "block";
-            var gadgetTitle = eXo.core.DOMUtil.findFirstDescendantByClass(gadgetControl, "span", "GadgetTitle") ;
-            gadgetTitle.style.display = "block";
-            if (metadata && metadata.modulePrefs.title != null && metadata.modulePrefs.title.length > 0) gadgetTitle.innerHTML = metadata.modulePrefs.title;
-        }
+    	var gadgetControl = eXo.core.DOMUtil.findFirstDescendantByClass(uiGadget, "div", "GadgetControl");
+        gadgetControl.style.display = "block";
+        var gadgetTitle = eXo.core.DOMUtil.findFirstDescendantByClass(gadgetControl, "span", "GadgetTitle") ;
+        gadgetTitle.style.display = "block";
+        if (metadata && metadata.modulePrefs.title != null && metadata.modulePrefs.title.length > 0) gadgetTitle.innerHTML = metadata.modulePrefs.title;
 
         if (inDesktop) {
             var dragHandleArea = eXo.core.DOMUtil.findFirstDescendantByClass(uiGadget, "div", "GadgetDragHandleArea");

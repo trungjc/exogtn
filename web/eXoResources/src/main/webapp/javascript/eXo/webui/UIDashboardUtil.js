@@ -142,7 +142,7 @@ function UIDashboardUtil() {
 	UIDashboardUtil.prototype.createRequest = function(componentId, action, params){
 		var url = eXo.env.server.portalBaseURL;
 		url += '?portal:componentId=' + componentId +
-							'&portal:type=action&uicomponent=UIDashboard&op=' + action ;
+							'&portal:type=action&portal:action=' + action ;
 		url += '&ajaxRequest=true';
 		if(params != null) {
 	  	var len = params.length ;

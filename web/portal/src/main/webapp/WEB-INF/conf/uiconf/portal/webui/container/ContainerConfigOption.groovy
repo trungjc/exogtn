@@ -148,19 +148,15 @@ import org.exoplatform.webui.core.model.SelectItemOption ;
 
   SelectItemCategory dashboard = new SelectItemCategory("dashboard") ;
     dashboard.addSelectItemOption(new SelectItemOption("DashboardContainer",
+      "<container template=\"system:/groovy/portal/webui/container/UIContainer.gtmpl\">" +
         "<container template=\"system:/groovy/portal/webui/container/UIDashboardLayoutContainer.gtmpl\">" +
         "  <factory-id>DashboardLayoutContainer</factory-id>" +
-        "  <container template=\"system:/groovy/portal/webui/container/UIDashboardLayout.gtmpl\">" +
-        "    <factory-id>DashboardLayout</factory-id>" +
-        "    <container template=\"system:/groovy/portal/webui/container/UIDashboardColumnContainer.gtmpl\">" +
-        "      <factory-id>DashboardColumnContainer</factory-id>" +
-        "      <container template=\"system:/groovy/portal/webui/container/UIDashboardColumn.gtmpl\"><factory-id>DashboardColumn</factory-id></container>" +
-        "      <container template=\"system:/groovy/portal/webui/container/UIDashboardColumn.gtmpl\"><factory-id>DashboardColumn</factory-id></container>" +
-        "      <container template=\"system:/groovy/portal/webui/container/UIDashboardColumn.gtmpl\"><factory-id>DashboardColumn</factory-id></container>" +
-        "    </container>" +
-        "  </container>" +
-        "</container>",
-        "DashboardContainerLayout")) ;
+        "  <container template=\"system:/groovy/portal/webui/container/UIColumnContainer.gtmpl\"><factory-id>ColumnContainer</factory-id></container>" +
+        "  <container template=\"system:/groovy/portal/webui/container/UIColumnContainer.gtmpl\"><factory-id>ColumnContainer</factory-id></container>" +
+        "  <container template=\"system:/groovy/portal/webui/container/UIColumnContainer.gtmpl\"><factory-id>ColumnContainer</factory-id></container>" +
+        "</container>" +
+      "</container>",
+      "DashboardContainerLayout")) ;
   templates.add(dashboard);
 
 return templates;

@@ -478,19 +478,6 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
       }
    }
 
-   @Override
-   public boolean showDragControl(WebuiRequestContext rcontext)
-   {
-      if(rcontext instanceof PortletRequestContext)
-      {
-         return false;
-      }
-      else
-      {
-         return showCloseButton(rcontext);
-      }
-   }
-
    /**
     * Initializes a newly created <code>SaveUserPrefActionListener</code>
     * object
