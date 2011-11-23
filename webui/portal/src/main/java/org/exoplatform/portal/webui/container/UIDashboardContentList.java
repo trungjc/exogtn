@@ -38,8 +38,8 @@ import org.exoplatform.webui.core.lifecycle.UIFormLifecycle;
  * @author <a href="hoang281283@gmail.com">Minh Hoang TO</a>
  * @date 11/15/11
  */
-@ComponentConfig(template = "classpath:groovy/dashboard/webui/component/UIDashboardSelectContainer.gtmpl", lifecycle = UIFormLifecycle.class)
-public class UIDashboardContentList extends org.exoplatform.webui.core.UIContainer
+@ComponentConfig(template = "system:/groovy/portal/webui/container/UIDashboardContentList.gtmpl", lifecycle = UIFormLifecycle.class)
+public class UIDashboardContentList extends UIContainer
 {
 
    private List<ApplicationCategory> categories;

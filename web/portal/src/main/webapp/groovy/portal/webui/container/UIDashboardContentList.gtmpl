@@ -1,17 +1,19 @@
 <% 
-  import org.gatein.common.text.EntityEncoder;
-  import org.exoplatform.commons.utils.HTMLEntityEncoder;
+  	import org.gatein.common.text.EntityEncoder;
+  	import org.exoplatform.commons.utils.HTMLEntityEncoder;
+  	import org.exoplatform.portal.webui.container.UIDashboardLayoutContainer;
+  	import org.exoplatform.webui.core.UIPopupWindow;
 
-	def uiDashboard = uicomponent.getAncestorOfType(org.exoplatform.dashboard.webui.component.UIDashboard.class);
-	if(!uiDashboard.canEdit()) return;
+	def uiDashboard = uicomponent.getAncestorOfType(UIDashboardLayoutContainer.class);
+	if(!uiDashboard.hasPermission()) return;
 		
-	def uiPopup = uicomponent.getAncestorOfType(org.exoplatform.webui.core.UIPopupWindow.class);
+	def uiPopup = uicomponent.getAncestorOfType(UIPopupWindow.class);
 	def rcontext = _ctx.getRequestContext();
-	rcontext.getJavascriptManager().addJavascript("eXo.webui.UIDashboard.initPopup('"+uiPopup.getId()+"');");
+	//rcontext.getJavascriptManager().addJavascript("eXo.webui.UIDashboard.initPopup('"+uiPopup.getId()+"');");
 
 	EntityEncoder encoder = HTMLEntityEncoder.getInstance();
  %>
-<div class="$uicomponent.id" id="UIDashboardSelectContainer" style="display: <%= uiDashboard.isShowSelectPopup()? "block" : "none"; %>;">
+<div class="$uicomponent.id" id="UIDashboardSelectContainer" style="display: <%= uiPopup.isShow() ? "block" : "none"; %>;">
 	<div class="DashboardItemContainer ItemContainer">
 		<div class="InputContainer">
 				<% uicomponent.renderChildren(); %>
