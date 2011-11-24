@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.exoplatform.application.registry.Application;
 import org.exoplatform.application.registry.ApplicationRegistryService;
+import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.UserACL;
 import org.exoplatform.portal.config.model.Page;
@@ -81,7 +82,7 @@ public class UIDashboardLayoutContainer extends UIContainer
       @Override
       public final void execute(final Event<UIDashboardLayoutContainer> event) throws Exception
       {
-         WebuiRequestContext context = event.getRequestContext();
+         PortalRequestContext context = (PortalRequestContext)event.getRequestContext();
          UIDashboardLayoutContainer uiDashboard = event.getSource();
          if (!uiDashboard.hasPermission())
          {
@@ -148,6 +149,7 @@ public class UIDashboardLayoutContainer extends UIContainer
          uiDashboard = uiPage.findComponentById(uiDashboard.getId());
          uiDashboard.getChild(UIPopupWindow.class).setShow(true);
          context.addUIComponentToUpdateByAjax(uiDashboard);
+         context.ignoreAJAXUpdateOnPortlets(true);
       }
    }
 

@@ -44,8 +44,8 @@
 											   String gadgetName = gadget.getDisplayName();
 											   gadgetName = gadgetName == null ? "" : encoder.encode(gadgetName);
 									%>
-													 	<div class="UIGadget SelectItem Item" id="${gadget.getId()}" style="top:0px; left:0px;">
-													 		<div class="GadgetControl">
+													 	<div class="UIGadget UIDragObject SelectItem Item" id="${gadget.getId()}" style="top:0px; left:0px;">
+													 		<div class="GadgetControl DragHandleArea">
 												 				<div class="GadgetTitle" style="cursor:move;" title="$gadgetName">
 												 					<%= (gadgetName.length() <= 23) ? gadgetName : gadgetName.substring(0, 20)+"..." %>
 												 				</div>
