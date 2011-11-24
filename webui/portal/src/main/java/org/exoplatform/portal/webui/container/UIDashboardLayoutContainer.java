@@ -88,6 +88,9 @@ public class UIDashboardLayoutContainer extends UIContainer
          {
             return;
          }
+         
+         context.ignoreAJAXUpdateOnPortlets(true);
+
          String col = context.getRequestParameter("columnId");
          int position = Integer.parseInt(context.getRequestParameter("position"));
          String objectId = context.getRequestParameter(UIComponent.OBJECTID);
@@ -98,6 +101,7 @@ public class UIDashboardLayoutContainer extends UIContainer
          {
             UIApplication uiApplication = context.getUIApplication();
             uiApplication.addMessage(new ApplicationMessage("UIDashboard.msg.ApplicationNotExisted", null));
+            context.addUIComponentToUpdateByAjax(uiDashboard);            
             return;
          }
                   
@@ -107,6 +111,62 @@ public class UIDashboardLayoutContainer extends UIContainer
             clazz = UIGadget.class;
          }
          UIWindow uiWindow = event.getSource().createUIComponent(clazz, null, null);
+         toUIWindow(uiWindow, application);
+
+         boolean staleData = false;
+         UIColumnContainer column = uiDashboard.getChildById(col);
+         if (column == null || column.getChildren().size() < position)
+         {
+            staleData = true;
+         } 
+         else 
+         {
+            column.getChildren().add(position, uiWindow);
+            uiWindow.setParent(column);
+            
+            // Save
+            DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);
+            UIPortal uiPortal = Util.getUIPortal();
+            UIPage uiPage = uiPortal.findFirstComponentOfType(UIPage.class);
+            Page page = PortalDataMapper.toPageModel(uiPage);
+            
+            try
+            {
+               storage.save(page);            
+            } 
+            catch (Exception ex)
+            {
+               staleData = true;
+            }
+            
+            // Synchronize model object with UIPage object, that seems  redundant but in fact
+            // mandatory to have consequent edit actions (on the same page) work properly
+            page = storage.getPage(page.getPageId());
+            uiPage.getChildren().clear();
+            PortalDataMapper.toUIPage(uiPage, page);
+            
+            // Update UIPage cache on UIPortal
+            uiPortal.setUIPage(page.getId(), uiPage);
+            uiPortal.refreshUIPage();
+            uiDashboard = uiPage.findComponentById(uiDashboard.getId());
+         }
+                           
+         if (staleData)
+         {
+            context.getUIApplication().addMessage(
+               new ApplicationMessage("UIDashboard.msg.StaleData", null, ApplicationMessage.ERROR));
+            context.addUIComponentToUpdateByAjax(uiDashboard);
+         }
+         else
+         {                                       
+            context.addUIComponentToUpdateByAjax(uiDashboard.findComponentById(col));         
+            context.getJavascriptManager().addCustomizedOnLoadScript(
+               "eXo.webui.UIDashboard.onLoad('" + uiDashboard.getId() + "'," + uiDashboard.hasPermission() + ");");
+         }
+      }
+
+      private void toUIWindow(UIWindow uiWindow, Application application)
+      {         
          uiWindow.setShowInfoBar(true);
          
          if (application.getDisplayName() != null)
@@ -130,32 +190,6 @@ public class UIDashboardLayoutContainer extends UIContainer
          uiWindow.setAccessPermissions(accessPers);
          
          uiWindow.initApplicationState(application);
-
-         UIColumnContainer column = uiDashboard.getChildById(col);
-         column.getChildren().add(position, uiWindow);
-         uiWindow.setParent(column);
-
-         // Save
-         DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);
-         UIPortal uiPortal = Util.getUIPortal();
-         UIPage uiPage = uiPortal.findFirstComponentOfType(UIPage.class);
-         Page page = PortalDataMapper.toPageModel(uiPage);
-         storage.save(page);
-         
-         // Synchronize model object with UIPage object, that seems  redundant but in fact
-         // mandatory to have consequent edit actions (on the same page) work properly
-         page = storage.getPage(page.getPageId());
-         uiPage.getChildren().clear();
-         PortalDataMapper.toUIPage(uiPage, page);
-         
-         // Update UIPage cache on UIPortal
-         uiPortal.setUIPage(page.getId(), uiPage);
-         uiPortal.refreshUIPage();
-
-         uiDashboard = uiPage.findComponentById(uiDashboard.getId());
-         uiDashboard.getChild(UIPopupWindow.class).setShow(true);
-         context.addUIComponentToUpdateByAjax(uiDashboard);
-         context.ignoreAJAXUpdateOnPortlets(true);
       }
    }
 
@@ -164,7 +198,7 @@ public class UIDashboardLayoutContainer extends UIContainer
       @Override
       public final void execute(final Event<UIDashboardLayoutContainer> event) throws Exception
       {
-         WebuiRequestContext context = event.getRequestContext();
+         PortalRequestContext context = (PortalRequestContext)event.getRequestContext();
          UIDashboardLayoutContainer uiDashboard = event.getSource();
          if (!uiDashboard.hasPermission())
          {
@@ -174,31 +208,49 @@ public class UIDashboardLayoutContainer extends UIContainer
          int position = Integer.parseInt(context.getRequestParameter("position"));
          String objectId = context.getRequestParameter(UIComponent.OBJECTID);
 
+         boolean staleData = false;
+
          UIColumnContainer newColumn = uiDashboard.getChildById(col);
          UIWindow uiwindow = uiDashboard.findComponentById(objectId);
-         if (uiwindow == null)
+         if (uiwindow == null || newColumn == null)
          {
+            staleData = true;
+         } 
+         else
+         {
+            UIColumnContainer oldColumn = uiwindow.getParent();
+            
+            // Move
+            oldColumn.removeChildById(objectId);
+            newColumn.getChildren().add(position, uiwindow);
+            uiwindow.setParent(newColumn);
+            
+            // Save
+            DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);
+            UIPortal uiPortal = Util.getUIPortal();
+            UIPage uiPage = uiPortal.findFirstComponentOfType(UIPage.class);
+            
+            try
+            {
+               storage.save(PortalDataMapper.toPageModel(uiPage));            
+            } 
+            catch (Exception ex)
+            {
+              staleData = true;  
+            }            
+         }
+            
+         if (staleData)
+         {
+            context.getUIApplication().addMessage(
+               new ApplicationMessage("UIDashboard.msg.StaleData", null, ApplicationMessage.ERROR));
+            context.ignoreAJAXUpdateOnPortlets(true);
             context.addUIComponentToUpdateByAjax(uiDashboard);
-            return;
-         }         
-         UIColumnContainer oldColumn = uiwindow.getParent();
-
-         // Move
-         oldColumn.removeChildById(objectId);
-         newColumn.getChildren().add(position, uiwindow);
-         uiwindow.setParent(newColumn);
-
-         // Save
-         DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);
-         UIPortal uiPortal = Util.getUIPortal();
-         UIPage uiPage = uiPortal.findFirstComponentOfType(UIPage.class);
-         storage.save(PortalDataMapper.toPageModel(uiPage));
-
-         // if (context.getAttribute(SAVE_FAIL) != null)
-         // {
-         // return;
-         // }
-         Util.getPortalRequestContext().setResponseComplete(true);
+         }
+         else
+         {
+            context.setResponseComplete(true);            
+         }
       }
    }
 
