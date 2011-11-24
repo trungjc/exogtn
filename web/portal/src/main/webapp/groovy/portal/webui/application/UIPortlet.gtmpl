@@ -77,7 +77,7 @@
 			String theme = uicomponent.getSuitedTheme(null);
 	%>
 				<div class="UIWindow $theme UIDragObject UIResizeObject" id="UIWindow-${portletId}"	${cssStyle} >
-					<div class="WindowBarLeft">
+					<div class="WindowBarLeft DragHandleArea">
 						<div class="WindowBarRight">
 							<div class="WindowBarCenter ClearFix">
 								<%

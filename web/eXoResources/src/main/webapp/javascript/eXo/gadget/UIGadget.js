@@ -100,7 +100,7 @@ eXo.gadget.UIGadget = {
         if (metadata && metadata.modulePrefs.title != null && metadata.modulePrefs.title.length > 0) gadgetTitle.innerHTML = metadata.modulePrefs.title;
 
         if (inDesktop) {
-            var dragHandleArea = eXo.core.DOMUtil.findFirstDescendantByClass(uiGadget, "div", "GadgetDragHandleArea");
+            var dragHandleArea = eXo.core.DOMUtil.findFirstDescendantByClass(uiGadget, "div", "DragHandleArea");
 
             if (uiGadget.style.zIndex < 0) uiGadget.style.zIndex = 0;
             eXo.core.DragDrop2.init(dragHandleArea, uiGadget);
@@ -178,11 +178,6 @@ eXo.gadget.UIGadget = {
         var uiGadget = this ;
         var gadgetControl = DOMUtil.findFirstDescendantByClass(uiGadget, "div", "GadgetControl");
         gadgetControl.style.visibility = "visible";
-
-        var uiPageDesktop = DOMUtil.findAncestorByClass(uiGadget, "UIPageDesktop");
-        if (uiPageDesktop) {
-            var dragHandleArea = DOMUtil.findFirstDescendantByClass(gadgetControl, "div", "GadgetTitle");
-        }
     },
 
     /**

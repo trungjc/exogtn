@@ -124,29 +124,30 @@ function UIDashboard() {
 
 				var uiColLeft = eXo.webui.UIDashboardUtil.findPosX(uiCol) - dashboardCont.scrollLeft;
 				if(uiColLeft<ex  &&  ex<uiColLeft+uiCol.offsetWidth ) {
-					var gadgets = DOMUtil.findDescendantsByClass(uiCol, "div", "UIGadget");
+					var windows = DOMUtil.findDescendantsByClass(uiCol, "div", "UIDragObject");
+					
 					//remove drag object from dropable target
-					for(var i=0; i<gadgets.length; i++) {
-						if(dragObj.id==gadgets[i].id) {
-							gadgets.splice(i,1);
+					for(var i=0; i<windows.length; i++) {
+						if(dragObj.id==windows[i].id) {
+							windows.splice(i,1);
 							break;
 						}
 					}
 
-					if(gadgets.length == 0) {
+					if(windows.length == 0) {
 						eXo.core.DOMUtil.findFirstDescendantByClass(uiCol, "div", "UIRowContainer").appendChild(uiTarget);
 						return;
 					}
 
 					//find position and add uiTarget into column				
-					for(var i=0; i<gadgets.length; i++) {
-						var oy = eXo.webui.UIDashboardUtil.findPosY(gadgets[i]) + (gadgets[i].offsetHeight/3) - dashboardCont.scrollTop;
+					for(var i=0; i<windows.length; i++) {
+						var oy = eXo.webui.UIDashboardUtil.findPosY(windows[i]) + (windows[i].offsetHeight/3) - dashboardCont.scrollTop;
 						
 						if(ey<=oy) {
-							gadgets[i].parentNode.insertBefore(uiTarget, gadgets[i]);
+							windows[i].parentNode.insertBefore(uiTarget, windows[i]);
 							break;
 						}
-						if(i==gadgets.length-1 && ey>oy) eXo.core.DOMUtil.findFirstDescendantByClass(uiCol, "div", "UIRowContainer").appendChild(uiTarget);
+						if(i==windows.length-1 && ey>oy) eXo.core.DOMUtil.findFirstDescendantByClass(uiCol, "div", "UIRowContainer").appendChild(uiTarget);
 					}					
 				}	else {
 					//find column which draggin in					
@@ -184,7 +185,7 @@ function UIDashboard() {
 			}
 			dragObj.style.position = "static";
 			DOMUtil.removeClass(dragObj,"Dragging");
-
+			
 			var dragCopyObj = DOMUtil.findFirstDescendantByClass(dashboardCont, "div", "CopyObj");
 			if(dragCopyObj) {
 				dragCopyObj.parentNode.replaceChild(dragObj, dragCopyObj);
@@ -192,7 +193,6 @@ function UIDashboard() {
 			}
 			
 			if(uiTarget) {	
-				//if drag object is not gadget module, create an module
 				var col = eXo.core.DOMUtil.findAncestorByClass(uiTarget, "UIColumnContainer");
 				var row = uiDashboardUtil.findRowIndexInDashboard(uiTarget);
 				var compId = dashboardCont.id;
@@ -203,9 +203,9 @@ function UIDashboard() {
 					var params = [
 									{name: "columnId", value: parent.id},
 									{name: "position", value: row},
-									{name: "objectId", value: dragObj.id}
+									{name: "objectId", value: dragObj.id.replace(/^(UIWindow-)?(UIGadget-)?/, "")}
 								];
-					var url = uiDashboardUtil.createRequest(compId, 'AddNewGadget', params);
+					var url = uiDashboardUtil.createRequest(compId, 'AddNewWindow', params);
 					ajaxGet(url);
 				} else {
 					//in case: drop to old position
@@ -217,9 +217,9 @@ function UIDashboard() {
 						var params = [
 										{name: "columnId", value: parent.id},
 										{name: "position", value: row},
-										{name: "objectId", value: dragObj.id}
+										{name: "objectId", value: dragObj.id.replace(/^(UIWindow-)?(UIGadget-)?/, "")}
 									];
-						var url = uiDashboardUtil.createRequest(compId, 'MoveGadget', params);
+						var url = uiDashboardUtil.createRequest(compId, 'MoveWindow', params);
 						ajaxGet(url);
 					}
 				}
@@ -255,7 +255,9 @@ function UIDashboard() {
 		//Todo: nguyenanhkien2a@gmail.com
 		//We set and increase waiting time for initDragDrop function to make sure all UI (tag, div, iframe, etc) 
 		//was loaded and to avoid some potential bugs (ex: GTNPORTAL-1068)
-		setTimeout("eXo.webui.UIDashboard.initDragDrop('" + dashboardId + "'," + canEdit + ");", 400) ;
+		if (eXo.portal.portalMode === 0) {
+			setTimeout("eXo.webui.UIDashboard.initDragDrop('" + dashboardId + "'," + canEdit + ");", 400) ;			
+		}
 	};
 	
 	UIDashboard.prototype.initDragDrop = function(dashboardId, canEdit) {
@@ -263,25 +265,31 @@ function UIDashboard() {
 		var uiDashboard = document.getElementById(dashboardId);
 		if(!uiDashboard) return;
 		
-		var gadgetControls = DOMUtil.findDescendantsByClass(uiDashboard, "div", "GadgetControl");
-		for(var j=0; j<gadgetControls.length; j++) {
-			var uiGadget = DOMUtil.findAncestorByClass(gadgetControls[j],"UIGadget");
-			var minimizeButton = DOMUtil.findFirstDescendantByClass(gadgetControls[j], "span", "MinimizeAction") ;
-			if(canEdit) {
-				eXo.webui.UIDashboard.init(gadgetControls[j], uiGadget);
-				
-				if(minimizeButton) minimizeButton.style.display = "block" ;
-			} else{
-				if(minimizeButton) {
-					minimizeButton.style.display = "none" ;
-					var controlBar = minimizeButton.parentNode ;
-					var closeButton = DOMUtil.findFirstChildByClass(controlBar, "div", "CloseGadget") ;
-					var editButton = DOMUtil.findFirstChildByClass(controlBar, "div", "EditGadget") ;
-					closeButton.style.display = "none" ;
-					editButton.style.display = "none" ;
-				}
+		//Init DnD for gadgets
+		var dragHandles = DOMUtil.findDescendantsByClass(uiDashboard, "div", "DragHandleArea");
+		for(var j=0; j<dragHandles.length; j++) {
+			dragHandles[j].style.cursor = "move";
+			var dragObject = DOMUtil.findAncestorByClass(dragHandles[j],"UIDragObject");
+			if (DOMUtil.hasClass(dragObject, "UIGadget")) {
+				var minimizeButton = DOMUtil.findFirstDescendantByClass(dragHandles[j], "span", "MinimizeAction") ;
+				if(canEdit) {
+					eXo.webui.UIDashboard.init(dragHandles[j], dragObject);
+					
+					if(minimizeButton) minimizeButton.style.display = "block" ;
+				} else{
+					if(minimizeButton) {
+						minimizeButton.style.display = "none" ;
+						var controlBar = minimizeButton.parentNode ;
+						var closeButton = DOMUtil.findFirstChildByClass(controlBar, "div", "CloseGadget") ;
+						var editButton = DOMUtil.findFirstChildByClass(controlBar, "div", "EditGadget") ;
+						closeButton.style.display = "none" ;
+						editButton.style.display = "none" ;
+					}
+				}				
+			} else {
+				eXo.webui.UIDashboard.init(dragHandles[j], dragObject);
 			}
-		}
+		}		
 	};
 	
 	UIDashboard.prototype.initPopup = function(popup) {

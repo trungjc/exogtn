@@ -39,7 +39,6 @@
 	background: url('/eXoResources/skin/DefaultSkin/portal/webui/component/view/UIDashboard/background/BgTitleGadget.gif') repeat-x left top;
 	line-height: 29px;
 	padding: 0 9px;
-	cursor: move;
 	text-align: left;
 	font-size: 14px;
 	font-family: verdana;
@@ -52,7 +51,6 @@
 	padding: 0px 5px;
 	color: #5b5b5b;
 	font-weight: normal;
-	cursor: move;
 	overflow: hidden;
 	white-space: nowrap;
 	width: auto;

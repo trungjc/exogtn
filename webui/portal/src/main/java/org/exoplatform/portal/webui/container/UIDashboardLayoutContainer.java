@@ -28,6 +28,7 @@ import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.TransientApplicationState;
 import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.webui.application.UIGadget;
+import org.exoplatform.portal.webui.application.UIWindow;
 import org.exoplatform.portal.webui.page.UIPage;
 import org.exoplatform.portal.webui.portal.UIPortal;
 import org.exoplatform.portal.webui.util.PortalDataMapper;
@@ -49,8 +50,8 @@ import org.exoplatform.webui.event.EventListener;
  */
 @ComponentConfig(template = "system:/groovy/portal/webui/container/UIDashboardLayoutContainer.gtmpl", events = {
    @EventConfig(listeners = UIDashboardLayoutContainer.SetShowSelectContainerActionListener.class),
-   @EventConfig(listeners = UIDashboardLayoutContainer.MoveGadgetActionListener.class),
-   @EventConfig(listeners = UIDashboardLayoutContainer.AddNewGadgetActionListener.class)})
+   @EventConfig(listeners = UIDashboardLayoutContainer.MoveWindowActionListener.class),
+   @EventConfig(listeners = UIDashboardLayoutContainer.AddNewWindowActionListener.class)})
 public class UIDashboardLayoutContainer extends UIContainer
 {
 
@@ -75,7 +76,7 @@ public class UIDashboardLayoutContainer extends UIContainer
       super.processRender(context);
    }
 
-   public static class AddNewGadgetActionListener extends EventListener<UIDashboardLayoutContainer>
+   public static class AddNewWindowActionListener extends EventListener<UIDashboardLayoutContainer>
    {
       @Override
       public final void execute(final Event<UIDashboardLayoutContainer> event) throws Exception
@@ -150,7 +151,7 @@ public class UIDashboardLayoutContainer extends UIContainer
       }
    }
 
-   public static class MoveGadgetActionListener extends EventListener<UIDashboardLayoutContainer>
+   public static class MoveWindowActionListener extends EventListener<UIDashboardLayoutContainer>
    {
       @Override
       public final void execute(final Event<UIDashboardLayoutContainer> event) throws Exception
@@ -166,13 +167,18 @@ public class UIDashboardLayoutContainer extends UIContainer
          String objectId = context.getRequestParameter(UIComponent.OBJECTID);
 
          UIColumnContainer newColumn = uiDashboard.getChildById(col);
-         UIGadget uiGadget = uiDashboard.findComponentById(objectId);
-         UIColumnContainer oldColumn = uiGadget.getParent();
+         UIWindow uiwindow = uiDashboard.findComponentById(objectId);
+         if (uiwindow == null)
+         {
+            context.addUIComponentToUpdateByAjax(uiDashboard);
+            return;
+         }         
+         UIColumnContainer oldColumn = uiwindow.getParent();
 
          // Move
          oldColumn.removeChildById(objectId);
-         newColumn.getChildren().add(position, uiGadget);
-         uiGadget.setParent(newColumn);
+         newColumn.getChildren().add(position, uiwindow);
+         uiwindow.setParent(newColumn);
 
          // Save
          DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);

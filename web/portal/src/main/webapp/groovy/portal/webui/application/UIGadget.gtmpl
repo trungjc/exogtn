@@ -86,9 +86,9 @@
 
 		def standaloneURL = uicomponent.getStandaloneURL();	
 %>
-<div class="UIGadget" id="$id" style="left: $posX; top: $posY; z-Index: $zIndex; width: 100%" >
+<div class="UIGadget UIDragObject" id="$id" style="left: $posX; top: $posY; z-Index: $zIndex; width: 100%" >
 	<a style="display:none" href="$standaloneURL"></a>
-	<div class="GadgetControl ClearFix" style="visibility: visible;">
+	<div class="GadgetControl ClearFix DragHandleArea" style="visibility: visible;">
 		<% if(uicomponent.showCloseButton(rcontext)) { %>
 		<span class="CloseGadget IconControl" onclick="$deleteLink" onmousedown="event.cancelBubble=true;" title="<%=_ctx.appRes("UIGadget.tooltip.deleteGadget")%>"></span>
 		<% } %>
@@ -101,7 +101,6 @@
 		<% if(uicomponent.isSettingUserPref()) { %>
         <span class="EditGadget IconControl" onclick="eXo.gadget.UIGadget.editGadget('$id')" onmousedown="event.cancelBubble=true;" title="<%=_ctx.appRes("UIGadget.tooltip.editGadget")%>"></span>
 		<% } %>
-        <span class="GadgetDragHandleArea" style="display: none;"></span>
 		<span class="GadgetTitle" style="display: none;"><%= title%></span>
 	</div>
 	<div class="GadgetApplication" id="content-$id" style="display:<%= Boolean.parseBoolean(uicomponent.getProperties().get("minimized")) ? "none": "block"; %>">
