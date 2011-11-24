@@ -132,8 +132,11 @@ function UIDashboardUtil() {
 		}
 	};
 	
-	UIDashboardUtil.prototype.findRowIndexInDashboard = function(dragObj){
+	UIDashboardUtil.prototype.findRowIndexInDashboard = function(dragObj, excludeId){
 		var modules = eXo.core.DOMUtil.getChildrenByTagName(dragObj.parentNode, "div");
+		for(var i=0; i<modules.length; i++){
+			if (modules[i].id == excludeId) modules.splice(i, 1);
+		}
 		for(var i=0; i<modules.length; i++){
 			if(modules[i].id == dragObj.id) return i;
 		}

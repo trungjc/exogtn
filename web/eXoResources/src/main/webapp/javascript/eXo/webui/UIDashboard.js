@@ -194,7 +194,7 @@ function UIDashboard() {
 			
 			if(uiTarget) {	
 				var col = eXo.core.DOMUtil.findAncestorByClass(uiTarget, "UIColumnContainer");
-				var row = uiDashboardUtil.findRowIndexInDashboard(uiTarget);
+				var row = uiDashboardUtil.findRowIndexInDashboard(uiTarget, dragObj.id);
 				var compId = dashboardCont.id;
 				var parent = eXo.core.DOMUtil.findAncestorByClass(uiTarget, "UIColumnContainer");
 				
@@ -210,7 +210,7 @@ function UIDashboard() {
 				} else {
 					//in case: drop to old position
 					if(eXo.core.DOMUtil.findAncestorByClass(dragObj, "UIColumnContainer") == col 
-								&& uiDashboardUtil.findRowIndexInDashboard(dragObj) == (row-1)) {
+								&& uiDashboardUtil.findRowIndexInDashboard(dragObj, uiTarget.id) == row) {
 						uiTarget.parentNode.removeChild(uiTarget);
 					} else {					
 						uiTarget.parentNode.replaceChild(dragObj, uiTarget);
