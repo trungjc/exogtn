@@ -287,7 +287,6 @@ public class Mapper
       ArrayList<ComponentData> children = new ArrayList<ComponentData>();
       for (UIComponent component : src.getComponents())
       {
-
          // Obtain a model object from the ui component
          ComponentData mo;
          if (component instanceof UIContainer)
@@ -295,55 +294,64 @@ public class Mapper
             UIContainer srcContainer = (UIContainer)component;
             Attributes attrs = srcContainer.getAttributes();
             String type = attrs.getValue(MappedAttributes.TYPE);
+
+            /**
+             * Used for lazy dashboard migration, to be removed in future releases
+             *
+             */
             if ("dashboard".equals(type))
             {
-               Site owner = src.getPage().getSite();
-               TransientApplicationState<Portlet> state = new TransientApplicationState<Portlet>(
-                  "dashboard/DashboardPortlet",
-                  null,
-                  getOwnerType(owner.getObjectType()),
-                  owner.getName(),
-                  null
-               );
+               List<UIComponent> likelyColumns = srcContainer.getComponents();
+               List<ComponentData> newColumns = new LinkedList<ComponentData>();
 
-               //
-               boolean showInfoBar = attrs.getValue(MappedAttributes.SHOW_INFO_BAR, false);
-               boolean showMode = attrs.getValue(MappedAttributes.SHOW_MODE, false);
-               boolean showWindowState = attrs.getValue(MappedAttributes.SHOW_WINDOW_STATE, false);
-               String theme = attrs.getValue(MappedAttributes.THEME, null);
-               
-               Described described = srcContainer.adapt(Described.class);
-               
-               String id = attrs.getValue(MappedAttributes.ID, null);
-               String icon = attrs.getValue(MappedAttributes.ICON, null);
-               String width = attrs.getValue(MappedAttributes.WIDTH, null);
-               String height = attrs.getValue(MappedAttributes.HEIGHT, null);
+               for(UIComponent likelyColumn : likelyColumns)
+               {
+                  if(likelyColumn instanceof UIContainer)
+                  {
+                     List<ComponentData> gadgets = this.loadChildren((UIContainer)likelyColumn);
+                     ContainerData newColumn =
+                        new ContainerData(
+                           likelyColumn.getObjectId(),
+                           null,
+                           null,
+                           null,
+                           "system:/groovy/portal/webui/container/UIColumnContainer.gtmpl",
+                           "ColumnContainer",
+                           null,
+                           null,
+                           null,
+                           null,
+                           Collections.singletonList("Everyone"),
+                           gadgets
+                        );
 
-               //
-               List<String> a = Collections.singletonList(UserACL.EVERYONE);
-               if (srcContainer.isAdapted(ProtectedResource.class)) {
-                  ProtectedResource pr = srcContainer.adapt(ProtectedResource.class);
-                  a = pr.getAccessPermissions();
+                     //Clear legacy dashboard stuff in Workspace object
+                     this.save(newColumn, (UIContainer)likelyColumn);
+
+                     newColumns.add(newColumn);
+                  }
                }
 
-               //
-               mo = new ApplicationData<Portlet>(
-                  srcContainer.getObjectId(),
-                  component.getName(),
-                  ApplicationType.PORTLET,
-                  state,
-                  id,
-                  described.getName(),
-                  icon,
-                  described.getDescription(),
-                  showInfoBar,
-                  showWindowState,
-                  showMode,
-                  theme,
-                  width,
-                  height,
-                  Collections.<String, String>emptyMap(),
-                  a);
+               ProtectedResource p = srcContainer.adapt(ProtectedResource.class);
+               ContainerData newDashboard =
+                  new ContainerData(
+                     srcContainer.getObjectId(),
+                     null,
+                     null,
+                     null,
+                     "system:/groovy/portal/webui/container/UIDashboardLayoutContainer.gtmpl",
+                     "DashboardLayoutContainer",
+                     null,
+                     null,
+                     null,
+                     null,
+                     p.getAccessPermissions(),
+                     newColumns
+                  );
+               //Clear legacy dashboard stuff in Workspace object
+               this.save(newDashboard, srcContainer);
+
+               mo = newDashboard;
             }
             else
             {
