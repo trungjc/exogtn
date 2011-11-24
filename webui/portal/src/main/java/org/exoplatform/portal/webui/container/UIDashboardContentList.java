@@ -28,9 +28,6 @@ import org.exoplatform.application.registry.Application;
 import org.exoplatform.application.registry.ApplicationCategory;
 import org.exoplatform.application.registry.ApplicationRegistryService;
 import org.exoplatform.portal.config.UserACL;
-import org.exoplatform.portal.config.model.ApplicationType;
-import org.exoplatform.portal.webui.util.Util;
-import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.core.lifecycle.UIFormLifecycle;
 
@@ -44,35 +41,25 @@ public class UIDashboardContentList extends UIContainer
 
    private List<ApplicationCategory> categories;
 
-   private ApplicationCategory selectedCategory;
-
    public UIDashboardContentList() throws Exception
    {
-//      addChild(UIAddGadgetForm.class, null, null);
-   }
-
-   public void setSelectedCategory(ApplicationCategory category)
-   {
-      selectedCategory = category;
-   }
-
-   public ApplicationCategory getSelectedCategory()
-   {
-      return selectedCategory;
+      addChild(UIAddGadgetForm.class, null, null);
    }
 
    public final List<ApplicationCategory> getCategories() throws Exception
    {
-      ApplicationRegistryService service = getApplicationComponent(ApplicationRegistryService.class);
-      UserACL acl = Util.getUIPortalApplication().getApplicationComponent(UserACL.class);
-
-      String remoteUser = ((WebuiRequestContext)WebuiRequestContext.getCurrentInstance()).getRemoteUser();
-      List<ApplicationCategory> listCategories = new ArrayList<ApplicationCategory>();
-
-      Iterator<ApplicationCategory> appCateIte = service.getApplicationCategories(remoteUser, ApplicationType.GADGET).iterator();
-      while (appCateIte.hasNext())
+      if (categories != null)
       {
-         ApplicationCategory cate = appCateIte.next();
+         return categories;
+      }
+      
+      ApplicationRegistryService service = getApplicationComponent(ApplicationRegistryService.class);
+      UserACL acl = getApplicationComponent(UserACL.class);
+
+      List<ApplicationCategory> listCategories = new ArrayList<ApplicationCategory>();
+      List<ApplicationCategory> appCateIte = service.getApplicationCategories();
+      for (ApplicationCategory cate : appCateIte)
+      {
          for(String p : cate.getAccessPermissions())
          {
             if(acl.hasPermission(p))
@@ -85,48 +72,48 @@ public class UIDashboardContentList extends UIContainer
                }               
             }
          }
-         
       }
+
       Collections.sort(listCategories, new Comparator<ApplicationCategory>()
       {
          public int compare(ApplicationCategory cate1, ApplicationCategory cate2)
          {
-            return cate1.getDisplayName().compareToIgnoreCase(cate2.getDisplayName());
+            String ds1 = cate1.getDisplayName() == null ? "" : cate1.getDisplayName();
+            String ds2 = cate2.getDisplayName() == null ? "" : cate2.getDisplayName();
+            return ds1.compareToIgnoreCase(ds2);
          }
       });
       categories = listCategories;
       return categories;
    }
 
-   public void setCategories(final List<ApplicationCategory> categories) throws Exception
+   public List<Application> getAppsOfCategory(final ApplicationCategory appCategory) throws Exception
    {
-      this.categories = categories;
-   }
-
-   public List<Application> getGadgetsOfCategory(final ApplicationCategory appCategory) throws Exception
-   {
-      UserACL acl = Util.getUIPortalApplication().getApplicationComponent(UserACL.class);
-      List<Application> listGadgets = new ArrayList<Application>();
-      Iterator<Application> gadgetIterator = appCategory.getApplications().iterator();
-      while(gadgetIterator.hasNext())
+      UserACL acl = getApplicationComponent(UserACL.class);
+      List<Application> apps = new ArrayList<Application>();
+      
+      List<Application> applications = appCategory.getApplications();
+      for (Application app : applications)
       {
-         Application app = gadgetIterator.next();
          for(String p : app.getAccessPermissions())
          {
             if(acl.hasPermission(p))
             {
-               listGadgets.add(app);
+               apps.add(app);
                break;
             }
          }
       }
-      Collections.sort(listGadgets, new Comparator<Application>()
+
+      Collections.sort(apps, new Comparator<Application>()
       {
          public int compare(Application app1, Application app2)
          {
-            return app1.getDisplayName().compareToIgnoreCase(app2.getDisplayName());
+            String ds1 = app1.getDisplayName() == null ? "" : app2.getDisplayName();
+            String ds2 = app1.getDisplayName() == null ? "" : app2.getDisplayName();
+            return ds1.compareToIgnoreCase(ds2);
          }
       });
-      return listGadgets;
+      return apps;
    }
 }

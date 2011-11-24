@@ -25,10 +25,10 @@ import org.exoplatform.application.registry.ApplicationRegistryService;
 import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.UserACL;
+import org.exoplatform.portal.config.model.ApplicationType;
 import org.exoplatform.portal.config.model.Page;
-import org.exoplatform.portal.config.model.TransientApplicationState;
-import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.webui.application.UIGadget;
+import org.exoplatform.portal.webui.application.UIPortlet;
 import org.exoplatform.portal.webui.application.UIWindow;
 import org.exoplatform.portal.webui.page.UIPage;
 import org.exoplatform.portal.webui.portal.UIPortal;
@@ -98,20 +98,26 @@ public class UIDashboardLayoutContainer extends UIContainer
          {
             UIApplication uiApplication = context.getUIApplication();
             uiApplication.addMessage(new ApplicationMessage("UIDashboard.msg.ApplicationNotExisted", null));
-            // context.setAttribute(UIDashboard.APP_NOT_EXIST, true);
             return;
          }
                   
-         UIGadget uiGadget = event.getSource().createUIComponent(context, UIGadget.class, null, null);         
+         Class<? extends UIWindow> clazz = UIPortlet.class;
+         if(application.getType() == ApplicationType.GADGET)
+         {
+            clazz = UIGadget.class;
+         }
+         UIWindow uiWindow = event.getSource().createUIComponent(clazz, null, null);
+         uiWindow.setShowInfoBar(true);
+         
          if (application.getDisplayName() != null)
          {
-            uiGadget.setTitle(application.getDisplayName());
+            uiWindow.setTitle(application.getDisplayName());
          }
          else if (application.getApplicationName() != null)
          {
-            uiGadget.setTitle(application.getApplicationName());
+            uiWindow.setTitle(application.getApplicationName());
          }
-         uiGadget.setDescription(application.getDescription());
+         uiWindow.setDescription(application.getDescription());
          List<String> accessPersList = application.getAccessPermissions();
          String[] accessPers = accessPersList.toArray(new String[accessPersList.size()]);
          for (String accessPer : accessPers)
@@ -121,13 +127,13 @@ public class UIDashboardLayoutContainer extends UIContainer
          }
          if (accessPers == null || accessPers.length == 0)
             accessPers = new String[]{UserACL.EVERYONE};
-         uiGadget.setAccessPermissions(accessPers);
+         uiWindow.setAccessPermissions(accessPers);
          
-         uiGadget.setState(new TransientApplicationState<Gadget>(application.getApplicationName()));
+         uiWindow.initApplicationState(application);
 
          UIColumnContainer column = uiDashboard.getChildById(col);
-         column.getChildren().add(position, uiGadget);
-         uiGadget.setParent(column);
+         column.getChildren().add(position, uiWindow);
+         uiWindow.setParent(column);
 
          // Save
          DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);
