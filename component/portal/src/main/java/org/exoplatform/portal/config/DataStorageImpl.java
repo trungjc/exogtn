@@ -348,12 +348,12 @@ public class DataStorageImpl implements DataStorage
 	    }
 	 }
 
-   public Container create(String parentID, Container container) throws Exception
+   public Container createContainer(String parentID, Container container) throws Exception
    {
       try
       {
          //TODO: Invoke ListenerService
-         ContainerData data = delegate.create(parentID, container.build());
+         ContainerData data = delegate.createContainerData(parentID, container.build());
          return new Container(data);
       }
       catch (Exception ex)
@@ -362,12 +362,12 @@ public class DataStorageImpl implements DataStorage
       }
    }
 
-   public Container save(Container container) throws Exception
+   public Container saveContainer(Container container) throws Exception
    {
       try
       {
          //TODO: Invoke ListenerService
-         ContainerData data = delegate.save(container.build());
+         ContainerData data = delegate.saveContainerData(container.build());
          return new Container(data);
       }
       catch(Exception ex)
@@ -376,12 +376,12 @@ public class DataStorageImpl implements DataStorage
       }
    }
 
-   public boolean delete(Container container) throws Exception
+   public boolean deleteContainer(Container container) throws Exception
    {
       try
       {
          //TODO: Invoke Listener service
-         return delegate.delete(container.build());
+         return delegate.deleteContainerData(container.build());
       }
       catch(Exception ex)
       {

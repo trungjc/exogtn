@@ -113,11 +113,11 @@ public interface ModelDataStorage
    
    public <A> A adapt(ModelData modelData, Class<A> type, boolean create);
 
-   public ContainerData create(String parentID, ContainerData container) throws Exception;
+   public ContainerData createContainerData(String parentID, ContainerData container) throws Exception;
 
-   public ContainerData save(ContainerData container) throws Exception;
+   public ContainerData saveContainerData(ContainerData container) throws Exception;
 
-   public boolean delete(ContainerData container) throws Exception;
+   public boolean deleteContainerData(ContainerData container) throws Exception;
 
 
 }

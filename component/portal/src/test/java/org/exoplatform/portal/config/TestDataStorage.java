@@ -458,7 +458,7 @@ public class TestDataStorage extends AbstractConfigTest
       portlet.setTitle("testPortlet");
       transientContainer.getChildren().add(portlet);
 
-      Container newlyCreatedContainer = storage_.create(outerContainer.getStorageId(), transientContainer);
+      Container newlyCreatedContainer = storage_.createContainer(outerContainer.getStorageId(), transientContainer);
       assertNotNull(newlyCreatedContainer.getChildren());
       assertEquals(1, newlyCreatedContainer.getChildren().size());
       assertTrue(newlyCreatedContainer.getChildren().get(0) instanceof Application);
@@ -472,7 +472,7 @@ public class TestDataStorage extends AbstractConfigTest
       gadget.setTitle("testGadget");
       newlyCreatedContainer.getChildren().add(gadget);
 
-      Container updatedContainer = storage_.save(newlyCreatedContainer);
+      Container updatedContainer = storage_.saveContainer(newlyCreatedContainer);
       assertNotNull(updatedContainer);
       assertEquals(newlyCreatedContainer.getStorageId(), updatedContainer.getStorageId());
       assertNotNull(updatedContainer.getChildren());
@@ -485,7 +485,7 @@ public class TestDataStorage extends AbstractConfigTest
       //Test delete
       try
       {
-         storage_.delete(updatedContainer);
+         storage_.deleteContainer(updatedContainer);
       }
       catch (Exception ex)
       {

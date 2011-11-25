@@ -258,7 +258,7 @@ public interface DataStorage
     * @param container
     * @return
     */
-   public Container create(String parentID, Container container) throws Exception;
+   public Container createContainer(String parentID, Container container) throws Exception;
 
    /**
     * Save a persistent container and return it
@@ -266,15 +266,14 @@ public interface DataStorage
     * @param container
     * @return
     */
-   public Container save(Container container) throws Exception;
+   public Container saveContainer(Container container) throws Exception;
 
    /**
     * Delete a persistent container
     *
-    * @param parentID
     * @param container
     * @return
     */
-   public boolean delete(Container container) throws Exception;
+   public boolean deleteContainer(Container container) throws Exception;
 
 }

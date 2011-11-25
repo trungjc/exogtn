@@ -26,7 +26,7 @@ import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.UserACL;
 import org.exoplatform.portal.config.model.ApplicationType;
-import org.exoplatform.portal.config.model.Page;
+import org.exoplatform.portal.config.model.Container;
 import org.exoplatform.portal.webui.application.UIGadget;
 import org.exoplatform.portal.webui.application.UIPortlet;
 import org.exoplatform.portal.webui.application.UIWindow;
@@ -126,31 +126,23 @@ public class UIDashboardLayoutContainer extends UIContainer
             
             // Save
             DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);
-            UIPortal uiPortal = Util.getUIPortal();
-            UIPage uiPage = uiPortal.findFirstComponentOfType(UIPage.class);
-            Page page = PortalDataMapper.toPageModel(uiPage);
-            
+            Container updatedColumn = null;
             try
             {
-               storage.save(page);            
-            } 
+               storage.saveContainer((Container)PortalDataMapper.buildModelObject(column));
+            }
             catch (Exception ex)
             {
                staleData = true;
             }
-            
-            // Synchronize model object with UIPage object, that seems  redundant but in fact
-            // mandatory to have consequent edit actions (on the same page) work properly
-            page = storage.getPage(page.getPageId());
-            uiPage.getChildren().clear();
-            PortalDataMapper.toUIPage(uiPage, page);
-            
-            // Update UIPage cache on UIPortal
-            uiPortal.setUIPage(page.getId(), uiPage);
-            uiPortal.refreshUIPage();
-            uiDashboard = uiPage.findComponentById(uiDashboard.getId());
+
+            if (updatedColumn != null)
+            {
+               column.getChildren().clear();
+               PortalDataMapper.toUIContainer(column, updatedColumn);
+            }
          }
-                           
+
          if (staleData)
          {
             context.getUIApplication().addMessage(

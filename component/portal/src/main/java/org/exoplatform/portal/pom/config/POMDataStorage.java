@@ -415,7 +415,7 @@ public class POMDataStorage implements ModelDataStorage
       throw new NoSuchDataException("Could not load the application data specified by the ID: " + applicationStorageId);
    }
 
-   public ContainerData create(String parentID, ContainerData container) throws Exception
+   public ContainerData createContainerData(String parentID, ContainerData container) throws Exception
    {
       if(container.getStorageId() != null)
       {
@@ -470,7 +470,7 @@ public class POMDataStorage implements ModelDataStorage
       );
    }
 
-   public ContainerData save(ContainerData container) throws Exception
+   public ContainerData saveContainerData(ContainerData container) throws Exception
    {
       String storageID = container.getStorageId();
       if(storageID == null)
@@ -507,7 +507,7 @@ public class POMDataStorage implements ModelDataStorage
          children);
    }
 
-   public boolean delete(ContainerData container) throws Exception
+   public boolean deleteContainerData(ContainerData container) throws Exception
    {
       String storageID = container.getStorageId();
       if(storageID == null)
