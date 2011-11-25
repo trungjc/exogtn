@@ -199,7 +199,6 @@ function UIDashboard() {
 				var parent = eXo.core.DOMUtil.findAncestorByClass(uiTarget, "UIColumnContainer");
 				
 				if(DOMUtil.hasClass(dragObj, "SelectItem")) {
-					uiTarget.parentNode.replaceChild(dragObj, uiTarget);
 					var params = [
 									{name: "columnId", value: parent.id},
 									{name: "position", value: row},
@@ -212,7 +211,7 @@ function UIDashboard() {
 					if(eXo.core.DOMUtil.findAncestorByClass(dragObj, "UIColumnContainer") == col 
 								&& uiDashboardUtil.findRowIndexInDashboard(dragObj, uiTarget.id) == row) {
 						uiTarget.parentNode.removeChild(uiTarget);
-					} else {					
+					} else {
 						uiTarget.parentNode.replaceChild(dragObj, uiTarget);
 						var params = [
 										{name: "columnId", value: parent.id},
@@ -252,6 +251,8 @@ function UIDashboard() {
 			closeButton.onclick = eXo.webui.UIDashboard.showHideSelectContainer;			
 		}
 		
+		eXo.webui.UIDashboard.toogleState(dashboardId);
+		
 		//Todo: nguyenanhkien2a@gmail.com
 		//We set and increase waiting time for initDragDrop function to make sure all UI (tag, div, iframe, etc) 
 		//was loaded and to avoid some potential bugs (ex: GTNPORTAL-1068)
@@ -259,6 +260,26 @@ function UIDashboard() {
 			setTimeout("eXo.webui.UIDashboard.initDragDrop('" + dashboardId + "'," + canEdit + ");", 400) ;			
 		}
 	};
+	
+	UIDashboard.prototype.toogleState = function(dashboardId) {
+		var uiDashboard = document.getElementById(dashboardId);
+		if(!uiDashboard) return;
+		
+		var DOMUtil = eXo.core.DOMUtil;
+		var noWindow = DOMUtil.findFirstDescendantByClass(uiDashboard, "div", "NoWindow");
+		if (!noWindow) return;
+		
+		if (!DOMUtil.findFirstDescendantByClass(uiDashboard, "div", "GadgetApplication") &&
+				!DOMUtil.findFirstDescendantByClass(uiDashboard, "div", "UIWindow")) {
+			noWindow.style.display = "block";
+		} else {
+			noWindow.style.display = "none";
+		}
+				
+		if (eXo.portal.portalMode == 2 || eXo.portal.portalMode == 4) {
+			setTimeout("eXo.webui.UIDashboard.toogleState(" + dashboardId + ")", 700);
+		}
+	}
 	
 	UIDashboard.prototype.initDragDrop = function(dashboardId, canEdit) {
 		var DOMUtil = eXo.core.DOMUtil ;

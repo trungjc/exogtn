@@ -393,7 +393,6 @@ public class PortalDataMapper
             UIGadget uiGadget = uiContainer.createUIComponent(context, UIGadget.class, null, null);
             uiGadget.setStorageId(application.getStorageId());
             toUIGadget(uiGadget, ga);
-            uiGadget.setInDashboard(dashboard);
             uiComponent = uiGadget;
          }
          else

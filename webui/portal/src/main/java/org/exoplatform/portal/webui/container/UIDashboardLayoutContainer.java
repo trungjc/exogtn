@@ -65,7 +65,7 @@ public class UIDashboardLayoutContainer extends UIContainer
       UIPopupWindow popup = addChild(UIPopupWindow.class, null, GADGET_POPUP_ID + "-" + hashCode());
       popup.setUIComponent(createUIComponent(UIDashboardContentList.class, null, null));
    }
-
+   
    @Override
    public void processRender(WebuiRequestContext context) throws Exception
    {
@@ -129,7 +129,7 @@ public class UIDashboardLayoutContainer extends UIContainer
             Container updatedColumn = null;
             try
             {
-               storage.saveContainer((Container)PortalDataMapper.buildModelObject(column));
+               updatedColumn = storage.saveContainer((Container)PortalDataMapper.buildModelObject(column));
             }
             catch (Exception ex)
             {
@@ -150,10 +150,10 @@ public class UIDashboardLayoutContainer extends UIContainer
             context.addUIComponentToUpdateByAjax(uiDashboard);
          }
          else
-         {                                       
-            context.addUIComponentToUpdateByAjax(uiDashboard.findComponentById(col));         
-            context.getJavascriptManager().addCustomizedOnLoadScript(
-               "eXo.webui.UIDashboard.onLoad('" + uiDashboard.getId() + "'," + uiDashboard.hasPermission() + ");");
+         {                                                               
+            context.addUIComponentToUpdateByAjax(column);         
+            context.getJavascriptManager().addCustomizedOnLoadScript("eXo.webui.UIDashboard.onLoad('" + 
+                              uiDashboard.getId() + "', " + uiDashboard.hasPermission() + ");");
          }
       }
 

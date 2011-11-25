@@ -146,16 +146,6 @@ public abstract class UIWindow<S> extends UIPortalComponent
 
    public abstract Class<? extends UIWindowForm> getFormType();
 
-   public boolean showCloseButton(WebuiRequestContext rcontext)
-   {
-      throw new UnsupportedOperationException("Please override this method");
-   }
-
-   public boolean showDragControl(WebuiRequestContext rcontext)
-   {
-      throw new UnsupportedOperationException("Please override this method");
-   }
-
    public static class EditWindowActionListener extends EventListener<UIWindow>
    {
       @Override

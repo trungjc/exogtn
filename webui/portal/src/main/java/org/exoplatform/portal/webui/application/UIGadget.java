@@ -19,6 +19,11 @@
 
 package org.exoplatform.portal.webui.application;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.util.Random;
+
 import org.exoplatform.application.gadget.Gadget;
 import org.exoplatform.application.gadget.GadgetRegistryService;
 import org.exoplatform.application.registry.Application;
@@ -28,15 +33,18 @@ import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
+import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.Properties;
 import org.exoplatform.portal.config.model.TransientApplicationState;
 import org.exoplatform.portal.pom.data.ModelDataStorage;
-import org.exoplatform.portal.webui.portal.UIPortalComponent;
+import org.exoplatform.portal.webui.container.UIDashboardLayoutContainer;
+import org.exoplatform.portal.webui.page.UIPage;
+import org.exoplatform.portal.webui.portal.UIPortalComponentActionListener.DeleteComponentActionListener;
+import org.exoplatform.portal.webui.util.PortalDataMapper;
 import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.portal.webui.workspace.UIPortalApplication;
 import org.exoplatform.web.application.ApplicationMessage;
 import org.exoplatform.webui.application.WebuiRequestContext;
-import org.exoplatform.webui.application.portlet.PortletRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.EventConfig;
 import org.exoplatform.webui.core.UIComponent;
@@ -48,11 +56,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Random;
-import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * Created by The eXo Platform SAS Author : dang.tung tungcnw@gmail.com May 06,
  * 2008
@@ -61,7 +64,7 @@ import javax.servlet.http.HttpServletResponse;
    @EventConfig(listeners = UIGadget.SaveUserPrefActionListener.class),
    @EventConfig(listeners = UIGadget.SetNoCacheActionListener.class),
    @EventConfig(listeners = UIGadget.SetDebugActionListener.class),
-   @EventConfig(name = "DeleteGadget", listeners = UIGadget.DeleteGadgetActionListener.class)
+   @EventConfig(name = "DeleteGadget", confirm="UIGadgetContainerManagement.confirm.DeleteGadget", listeners = UIGadget.DeleteGadgetActionListener.class)
 })
 /**
  * This class represents user interface gadgets, it using UIGadget.gtmpl for
@@ -83,8 +86,6 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
    private String url_;
 
    private GadgetRegistryService gadgetRegistryService = null;
-
-   private boolean inDashboard = false;
 
    public static final String PREF_KEY = "_pref_gadget_";
 
@@ -417,6 +418,11 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
       this.view = view;
    }
 
+   public boolean showCloseButton()
+   {
+      return getAncestorOfType(UIDashboardLayoutContainer.class) != null;
+   }
+   
    /**
     * Gets user preference of gadget application
     * 
@@ -446,36 +452,6 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
       // convenient as this could lead to a severe performance degradation
       ModelDataStorage mds = getApplicationComponent(ModelDataStorage.class);
       mds.save();
-   }
-
-   public void setInDashboard(boolean inDashboard)
-   {
-      this.inDashboard = inDashboard;
-   }
-
-   public boolean isInDashboard()
-   {
-      return this.inDashboard;
-   }
-
-   @Override
-   public boolean showCloseButton(WebuiRequestContext rcontext)
-   {
-      //If gadget is wrapped in dashboard portlet
-      if(rcontext instanceof PortletRequestContext)
-      {
-         return true;
-      }
-      else if(rcontext instanceof PortalRequestContext)
-      {
-         PortalRequestContext pcontext = (PortalRequestContext)rcontext;
-         UIPortalApplication uiPortalApp = (UIPortalApplication)pcontext.getUIApplication();
-         return uiPortalApp.getModeState() == UIPortalApplication.APP_BLOCK_EDIT_MODE || uiPortalApp.getModeState() == UIPortalApplication.CONTAINER_BLOCK_EDIT_MODE;
-      }
-      else
-      {
-         throw new AssertionError();
-      }
    }
 
    /**
@@ -546,23 +522,49 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
       }
    }
 
-   /**
-    * For unknown reason, deleting gadget via listener in UIPortalComponentActionListener cause error. Hence, we
-    * define this listener for temporary use.
-    */
-   public static class DeleteGadgetActionListener extends EventListener<UIGadget>
+   public static class DeleteGadgetActionListener extends DeleteComponentActionListener
    {
+
       @Override
-      public void execute(Event<UIGadget> uiGadgetEvent) throws Exception
+      public void execute(Event<UIComponent> event) throws Exception
       {
-         UIGadget gadget = uiGadgetEvent.getSource();
-         UIPortalComponent parent = gadget.getParent();
-         parent.removeChildById(gadget.getId());
-         StringBuilder scriptBuilder = new StringBuilder();
-         scriptBuilder.append("eXo.portal.UIPortal.removeComponent('");
-         scriptBuilder.append(gadget.getId());
-         scriptBuilder.append("');");
-         uiGadgetEvent.getRequestContext().getJavascriptManager().addJavascript(scriptBuilder.toString());
+         WebuiRequestContext context = event.getRequestContext();
+         super.execute(event);
+
+         UIPortalApplication uiApp = Util.getUIPortalApplication();
+         UIComponent uiGadget = event.getSource();
+         UIDashboardLayoutContainer container = uiGadget.getAncestorOfType(UIDashboardLayoutContainer.class);
+         if (container != null && uiApp.getModeState() == UIPortalApplication.NORMAL_MODE)
+         {
+            // String objectId = context.getRequestParameter(OBJECTID);
+
+            // if (uiDashboard.getMaximizedGadget() != null &&
+            // uiDashboard.getMaximizedGadget().getId().equals(objectId))
+            // {
+            // uiDashboard.setMaximizedGadget(null);
+            // }
+
+            // Save
+            DataStorage storage = uiGadget.getApplicationComponent(DataStorage.class);
+            UIPage uiPage = container.getAncestorOfType(UIPage.class);
+            Page page = PortalDataMapper.toPageModel(uiPage);
+
+            try
+            {
+               storage.save(page);               
+            }
+            catch (Exception ex)
+            {
+               context.getUIApplication().addMessage(
+                  new ApplicationMessage("UIDashboard.msg.StaleData", null, ApplicationMessage.ERROR));
+               context.addUIComponentToUpdateByAjax(container);
+            }            
+         }
+         
+         if (container != null && container.findFirstComponentOfType(UIWindow.class) == null)
+         {
+            context.getJavascriptManager().addCustomizedOnLoadScript("eXo.webui.UIDashboard.toogleState(" + container.getId() + ");");
+         }
       }
    }
 }

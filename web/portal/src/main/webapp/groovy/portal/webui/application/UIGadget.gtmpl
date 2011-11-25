@@ -16,19 +16,10 @@
 	
  	def id = uicomponent.getId() != null ? uicomponent.getId() : "UIGadget";
 	def title = uicomponent.getApplicationName();
-	def deleteLink;
-	if(uicomponent.isInDashboard())
-	{
-		deleteLink = "eXo.gadget.UIGadget.deleteGadget(this)";
-	}
-	else
-	{
-		deleteLink = uicomponent.event("DeleteGadget", id);
-	}	
 	
 	if(uiPortalApp.isEditing()) {
 %>
-	   	<div class="UIGadget <%=hasPermission?"":"ProtectedPortlet"%>" id="UIGadget-$id" onmouseover="eXo.portal.UIPortal.blockOnMouseOver(event, this, true);" 
+	   	<div class="UIGadget <%=hasPermission?"":"ProtectedPortlet"%>" id="$id" onmouseover="eXo.portal.UIPortal.blockOnMouseOver(event, this, true);" 
 	   					onmouseout="eXo.portal.UIPortal.blockOnMouseOver(event, this, false);" style="top: 0px; left:0px;">
 	   		<div class="UIComponentBlock">	   		
 	   		<%if(portalMode == uiPortalApp.CONTAINER_BLOCK_EDIT_MODE || portalMode == uiPortalApp.APP_BLOCK_EDIT_MODE) { %>	
@@ -72,8 +63,7 @@
 	      	url = uicomponent.getUrl();
 	      	metadata = uicomponent.getRpcMetadata();
 	      	userPref = uicomponent.getUserPref();
-	      	jsmanager.importJavascript("eXo.gadget.UIGadget");
-	      	rcontext.getJavascriptManager().addCustomizedOnLoadScript("eXo.gadget.UIGadget.confirmDeleteGadget = '" + _ctx.appRes("UIGadgetContainerManagement.confirm.DeleteGadget") + "';");
+	      	jsmanager.importJavascript("eXo.gadget.UIGadget");	      	
 	      	jsmanager.addCustomizedOnLoadScript("eXo.gadget.UIGadget.createGadget('$url','content-$id', $metadata, $userPref, '$view', '$hostName', " + (isDev ? 1 : 0)
 	      																																						+ ", " + (isDebug ? 1 : 0) + ", " + (noCache ? 1 : 0) + ");");      									
 	    }
@@ -89,8 +79,8 @@
 <div class="UIGadget UIDragObject" id="$id" style="left: $posX; top: $posY; z-Index: $zIndex; width: 100%" >
 	<a style="display:none" href="$standaloneURL"></a>
 	<div class="GadgetControl ClearFix DragHandleArea" style="visibility: visible;">
-		<% if(uicomponent.showCloseButton(rcontext)) { %>
-		<span class="CloseGadget IconControl" onclick="$deleteLink" onmousedown="event.cancelBubble=true;" title="<%=_ctx.appRes("UIGadget.tooltip.deleteGadget")%>"></span>
+		<% if(uicomponent.showCloseButton()) { %>
+		<span class="CloseGadget IconControl" onclick="<%=uicomponent.event("DeleteGadget") %>" onmousedown="event.cancelBubble=true;" title="<%=_ctx.appRes("UIGadget.tooltip.deleteGadget")%>"></span>
 		<% } %>
 		<span class="<%=view.equals(uicomponent.HOME_VIEW) ? "MaximizeGadget" : "RestoreGadget";%> IconControl"
                         onclick="eXo.gadget.UIGadget.maximizeGadget(this)" onmousedown="event.cancelBubble=true;"
@@ -134,7 +124,7 @@
 							<div class="PortletIcon $gadgetIcon"><%=hasPermission ? title : _ctx.appRes("UIPortlet.label.protectedContent")%></div>
 							<%if(hasPermission) {%>
 								<a href="<%=uicomponent.event("EditPortlet","$uicomponent.id")%>" class="EditIcon" title="<%=_ctx.appRes("UIPortlet.tooltip.editPortlet");%>"></a>
-								<a href="<%=uicomponent.event("DeleteComponent","$uicomponent.id")%>" class="DeleteIcon" title="<%=_ctx.appRes("UIPortlet.tooltip.deletePortlet");%>"></a>
+								<a href="javascript:void(0)" onclick="<%=uicomponent.event("DeleteGadget")%>" class="DeleteIcon" title="<%=_ctx.appRes("UIPortlet.tooltip.deletePortlet");%>"></a>
 							<%}%>	
 						</div>
 						<%/*End InfoBar*/ %>

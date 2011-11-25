@@ -3,6 +3,7 @@
 	import org.exoplatform.portal.webui.workspace.UIPortalApplication;
 	import org.exoplatform.webui.core.UIPopupWindow;
 	import org.exoplatform.portal.webui.application.UIGadget;
+	import org.exoplatform.portal.webui.application.UIWindow;
 	
 	def rcontext = _ctx.getRequestContext(); 
 	ResourceBundle res = rcontext.getApplicationResourceBundle(); 
@@ -47,8 +48,8 @@
 								href="#" onclick="eXo.webui.UIDashboard.showHideSelectContainer(event);return false;">
 					<%=_ctx.appRes("UIDashboardContainer.label.openWorkspace");%>
 				</a>
-				<div class="NoGadget" style="display: <%=uicomponent.findFirstComponentOfType(UIGadget.class) != null ? "none" : "block"%>">
-					<%= _ctx.appRes("UIDashboardContainer.msg.addGadget"); %>
+				<div class="NoWindow" style="display: <%=uicomponent.findFirstComponentOfType(UIWindow.class) != null ? "none" : "block"%>">
+					<%= _ctx.appRes("UIDashboard.msg.addGadget"); %>
 				</div>
 				<table class="UIDashboardColumn" style="table-layout: fixed; margin: 0px auto; $style">
 					<tr class="TRContainer">

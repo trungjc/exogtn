@@ -348,6 +348,7 @@ UIPortal.prototype.popupButton = function(url, action) {
  */
 UIPortal.prototype.removeComponent = function(componentId) {
 		var comp = document.getElementById(componentId);
+		if (!comp) return;
 		var viewPage = eXo.core.DOMUtil.findAncestorByClass(comp, "VIEW-PAGE");
 		
 		//Check if the removing component is a column

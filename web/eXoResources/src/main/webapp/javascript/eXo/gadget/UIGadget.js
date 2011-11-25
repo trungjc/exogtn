@@ -256,59 +256,7 @@ eXo.gadget.UIGadget = {
         href += "&maximize=" + maximize;
         href += "&objectId=" + uiGadget.id + "&ajaxRequest=true";
         ajaxGet(href,true);
-    },
-    /**
-     * Delete a gadget from UI and database
-     * @param {Object} selectedElement object to delete
-     */
-    deleteGadget : function(selectedElement) {
-        var DOMUtil = eXo.core.DOMUtil ;
-        var uiPage = DOMUtil.findAncestorByClass(selectedElement, "UIPage") ;
-        var uiGadget = DOMUtil.findAncestorByClass(selectedElement, "UIGadget") ;
-        var containerBlockId ;
-
-        var portletFragment = DOMUtil.findAncestorByClass(uiGadget, "PORTLET-FRAGMENT");
-
-        if (portletFragment != null) {
-            var compId = portletFragment.parentNode.id;
-            var uicomp = DOMUtil.findAncestorByClass(uiGadget, "UIDashboard").id;
-//            if (DOMUtil.findChildrenByClass(portletFragment, "div", "UIDashboard"))
-//                uicomp = "UIDashboard";
-//            else
-//                uicomp = DOMUtil.getChildrenByTagName(portletFragment, "div")[0].className;
-            if (confirm(this.confirmDeleteGadget)) {
-                var href = eXo.env.server.portalBaseURL + "?portal:componentId=" + compId;
-                href += "&portal:type=action&uicomponent=" + uicomp;
-                href += "&op=DeleteGadget";
-                href += "&objectId=" + uiGadget.id + "&ajaxRequest=true";
-                
-                var uiDashboardCont = DOMUtil.findAncestorByClass(uiGadget, "UIDashboardContainer"); 
-                if(uiDashboardCont) {
-                	ajaxGet(href);
-	                DOMUtil.removeElement(uiGadget);
-	                if(!DOMUtil.findFirstDescendantByClass(uiDashboardCont, "div", "UIGadget")) {
-	                	DOMUtil.findFirstDescendantByClass(uiDashboardCont, "div", "NoGadget").style.display = "block";
-	                }
-                }else {
-//                Case: delete gadget in dashboard when maximized gadget
-                	ajaxGet(href);
-                }
-            }
-
-        } else {
-            var uiPageIdNode = DOMUtil.findFirstDescendantByClass(uiPage, "div", "id");
-            containerBlockId = uiPageIdNode.innerHTML;
-            if (confirm(this.confirmDeleteGadget)) {
-                var params = [
-                    {name: "objectId", value : uiGadget.id}
-                ] ;
-                var result = ajaxAsyncGetRequest(eXo.env.server.createPortalURL(containerBlockId, "DeleteGadget", true, params), false) ;
-                if (result == "OK") {
-                    DOMUtil.removeElement(uiGadget);
-                }
-            }
-        }
-    },
+    },    
     /**
      * Save Window information of gadget instance (x, y, z axis, etc)
      * @param {Object} object Gadget object
