@@ -40,9 +40,12 @@
 		<div class="VIEW-CONTAINER VIEW-BLOCK">
 		<%} %>
 			<div>
-				<%
+				<%				
 				if(hasPermission) {
 					def popupWindow = uicomponent.getChild(UIPopupWindow.class);
+					if (!uiPortalApp.isEditing()) {
+					   uicomponent.renderChild(popupWindow);
+					}
 				%>		
 				<a class="AddIcon" style="visibility: <%= popupWindow.isShow() ? "hidden" : "visible"%>;" 
 								href="#" onclick="eXo.webui.UIDashboard.showHideSelectContainer(event);return false;">
@@ -60,11 +63,7 @@
 						<% } %>
 				 </tr>
 				</table>								
-				<%
-					if (!uiPortalApp.isEditing()) {
-					   uicomponent.renderChild(popupWindow);
-					}
-				} else {print "<div class='ProtectedContent'>"+_ctx.appRes("UIPortlet.label.protectedContent")+"</div>";}%>
+				<%} else {print "<div class='ProtectedContent'>"+_ctx.appRes("UIPortlet.label.protectedContent")+"</div>";}%>
 			</div>		
 		</div>
 		<%/*Debug On IE	-----For DND */%>
