@@ -33,6 +33,7 @@ import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
+import org.exoplatform.portal.config.model.Container;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.Properties;
 import org.exoplatform.portal.config.model.TransientApplicationState;
@@ -531,10 +532,12 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
          WebuiRequestContext context = event.getRequestContext();
          super.execute(event);
 
-         UIPortalApplication uiApp = Util.getUIPortalApplication();
          UIComponent uiGadget = event.getSource();
          UIDashboardLayoutContainer container = uiGadget.getAncestorOfType(UIDashboardLayoutContainer.class);
-         if (container != null && uiApp.getModeState() == UIPortalApplication.NORMAL_MODE)
+         if (container == null) return;
+         
+         UIPortalApplication uiApp = Util.getUIPortalApplication();
+         if (uiApp.getModeState() == UIPortalApplication.NORMAL_MODE)
          {
             // String objectId = context.getRequestParameter(OBJECTID);
 
@@ -546,22 +549,19 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
 
             // Save
             DataStorage storage = uiGadget.getApplicationComponent(DataStorage.class);
-            UIPage uiPage = container.getAncestorOfType(UIPage.class);
-            Page page = PortalDataMapper.toPageModel(uiPage);
-
             try
             {
-               storage.save(page);               
+               storage.saveContainer((Container)PortalDataMapper.buildModelObject(uiGadget.getParent()));
             }
             catch (Exception ex)
             {
                context.getUIApplication().addMessage(
                   new ApplicationMessage("UIDashboard.msg.StaleData", null, ApplicationMessage.ERROR));
                context.addUIComponentToUpdateByAjax(container);
-            }            
+            }         
          }
          
-         if (container != null && container.findFirstComponentOfType(UIWindow.class) == null)
+         if (container.findFirstComponentOfType(UIWindow.class) == null)
          {
             context.getJavascriptManager().addCustomizedOnLoadScript("eXo.webui.UIDashboard.toogleState(" + container.getId() + ");");
          }

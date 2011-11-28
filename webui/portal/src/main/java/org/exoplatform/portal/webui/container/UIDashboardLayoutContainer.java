@@ -30,8 +30,6 @@ import org.exoplatform.portal.config.model.Container;
 import org.exoplatform.portal.webui.application.UIGadget;
 import org.exoplatform.portal.webui.application.UIPortlet;
 import org.exoplatform.portal.webui.application.UIWindow;
-import org.exoplatform.portal.webui.page.UIPage;
-import org.exoplatform.portal.webui.portal.UIPortal;
 import org.exoplatform.portal.webui.util.PortalDataMapper;
 import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.portal.webui.workspace.UIPortalApplication;
@@ -219,17 +217,14 @@ public class UIDashboardLayoutContainer extends UIContainer
             
             // Save
             DataStorage storage = uiDashboard.getApplicationComponent(DataStorage.class);
-            UIPortal uiPortal = Util.getUIPortal();
-            UIPage uiPage = uiPortal.findFirstComponentOfType(UIPage.class);
-            
             try
             {
-               storage.save(PortalDataMapper.toPageModel(uiPage));            
-            } 
+               storage.saveContainer((Container)PortalDataMapper.buildModelObject(uiDashboard));
+            }
             catch (Exception ex)
             {
-              staleData = true;  
-            }            
+               staleData = true;
+            }        
          }
             
          if (staleData)
