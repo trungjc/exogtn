@@ -225,10 +225,10 @@
 			</div>
 		<%} %>
 			
-			<div class="EDITION-BLOCK EDITION-PORTLET" style="display: none;position: relative; z-index: 999;">
+			<div class="EDITION-BLOCK EDITION-WINDOW" style="display: none;position: relative; z-index: 999;">
 				<div style="position: absolute; top: -86px;">
 					<div class="NewLayer"><span></span></div>
-					<div class="CONTROL-PORTLET CONTROL-BLOCK UIInfoBar">
+					<div class="CONTROL-WINDOW CONTROL-BLOCK UIInfoBar">
 						<%/*Begin InfoBar*/%>
 						<div class="BlueRoundedStyle ClearFix">
 							<div class="DragControlArea" title="<%=_ctx.appRes("UIPortlet.tooltip.DragControl");%>" onmousedown="eXo.portal.PortalDragDrop.init.call(this,event);"><span></span></div>

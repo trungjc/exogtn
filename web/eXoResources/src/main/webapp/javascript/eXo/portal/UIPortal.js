@@ -85,10 +85,10 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
 			width = layoutBlock.offsetWidth;
 		} else if(viewBlock && viewBlock.style.display != "none") {
 			height = viewBlock.offsetHeight;
-      width = viewBlock.offsetWidth;
+			width = viewBlock.offsetWidth;
 		}
 		
-		if(DOMUtil.hasClass(portlet, "UIPortlet")) {
+		if(DOMUtil.hasClass(portlet, "UIPortlet") || DOMUtil.hasClass(portlet, "UIGadget")) {
 			newLayer.style.width = width + "px";
 			newLayer.style.height = height + "px";
 		} else {
@@ -103,9 +103,9 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
 
 		var uiInfoBar = DOMUtil.findFirstDescendantByClass(editBlock, "div", "UIInfoBar");
 
-		if( uiInfoBar && (eXo.core.Browser.isIE6() || (eXo.core.Browser.isIE7() && eXo.core.I18n.isRT()))){
+		if( uiInfoBar && (eXo.core.Browser.isIE6() || (eXo.core.Browser.isIE7() && eXo.core.I18n.isRT()))) {
 			//resize width of portlet/container only one time
-			if(uiInfoBar.style.width == ""){
+			if(uiInfoBar.style.width == "") {
 				var dragControlArea = DOMUtil.findFirstDescendantByClass(uiInfoBar, "div", "DragControlArea");
 				
 				var portletIcon = DOMUtil.findFirstDescendantByClass(uiInfoBar, "div", "PortletIcon");
@@ -118,7 +118,7 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
 				
 				var uiInfoBarWidth =  dragControlArea.offsetWidth;
 				
-				if(DOMUtil.hasClass(portlet, "UIPortlet")){
+				if(DOMUtil.hasClass(portlet, "UIPortlet") || DOMUtil.hasClass(portlet, "UIGadget")) {
 					uiInfoBarWidth += portletIcon.offsetWidth;
 					
 					if(editPortletPropertiesIcon){
@@ -130,7 +130,7 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
 					}
 				}
 				
-				if(DOMUtil.hasClass(portlet, "UIContainer")){
+				if(DOMUtil.hasClass(portlet, "UIContainer")) {
 					uiInfoBarWidth += contarnerIcon.offsetWidth
 					
 					if(editContainerIcon){
@@ -150,14 +150,14 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
 		
 	}	else {
 		editBlock.style.display = "none";
-		if(!DOMUtil.hasClass(portlet, "UIPortlet")) {
+		if(!DOMUtil.hasClass(portlet, "UIPortlet") && !DOMUtil.hasClass(portlet, "UIGadget")) {
 			var normalBlock = DOMUtil.findFirstChildByClass(portlet, "div", "OverContainerBlock");
 			if(normalBlock) DOMUtil.replaceClass(normalBlock, "OverContainerBlock", "NormalContainerBlock");
 		}
 	}
 	
 	// Don't display portlet control when View Container
-	var controlPortlet =	DOMUtil.findFirstDescendantByClass(editBlock, "div", "CONTROL-PORTLET");
+	var controlPortlet =	DOMUtil.findFirstDescendantByClass(editBlock, "div", "CONTROL-WINDOW");
 	if (controlPortlet) {
 		controlPortlet.style.display = eXo.portal.portalMode == 4 ? "none" : "block";
 	}
