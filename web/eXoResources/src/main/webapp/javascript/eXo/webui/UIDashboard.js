@@ -253,6 +253,13 @@ function UIDashboard() {
 		
 		eXo.webui.UIDashboard.toogleState(dashboardId);
 		
+		var containers = DOMUtil.findDescendantsByClass(uiDashboard, "div", "UIContainer");
+		if (containers.length && !DOMUtil.hasClass(containers[0], "ApplicationDropableOnly")) {
+			for (var i = 0; i < containers.length; i++) {				
+				DOMUtil.addClass(containers[i], "ApplicationDropableOnly");
+			}			
+		}
+		
 		//Todo: nguyenanhkien2a@gmail.com
 		//We set and increase waiting time for initDragDrop function to make sure all UI (tag, div, iframe, etc) 
 		//was loaded and to avoid some potential bugs (ex: GTNPORTAL-1068)

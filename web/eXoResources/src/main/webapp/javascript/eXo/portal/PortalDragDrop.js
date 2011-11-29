@@ -290,14 +290,7 @@ PortalDragDrop.prototype.init = function(e) {
     var dragBlock = eXo.portal.UIPortal.findUIComponentOf(componentBlock) ;
     DragDrop.init(eXo.portal.PortalDragDrop.findDropableTargets(dragBlock), clickObject, dragBlock, e) ;
   } else {
-  	var dragBlock = DOMUtil.findAncestorByClass(clickObject, "DragObjectPortlet") ;
-  	//TODO: Seems the dragBlock is always null 
-		if(dragBlock) {
-			eXo.debug("The dragBlock is not null");
-  		DragDrop.init(eXo.portal.PortalDragDrop.findDropableTargets(dragBlock), clickObject, dragBlock, e) ;
-		} else {
-    	DragDrop.init(eXo.portal.PortalDragDrop.findDropableTargets(dragBlock), clickObject, clickObject, e) ;
-		}
+	  DragDrop.init(eXo.portal.PortalDragDrop.findDropableTargets(clickObject), clickObject, clickObject, e) ;
   }
 };
 
@@ -331,7 +324,7 @@ PortalDragDrop.prototype.doDropCallback = function(dndEvent) {
   }
     
   var params = [                
-    {name: "srcID", value: (srcElement.id.replace(/^(UIPortlet-)?(UIGadget-)?/, ""))},
+    {name: "srcID", value: (srcElement.id.replace(/^UIPortlet-/, ""))},
     {name: "targetID", value: targetElement.id.replace(/^.*-/, "")},
     {name: "insertPosition", value: targetElement.foundIndex},
     {name: "isAddingNewly", value: srcElement.isAddingNewly}
@@ -352,19 +345,19 @@ PortalDragDrop.prototype.doDropCallback = function(dndEvent) {
  * @param the dragging object
  */
 PortalDragDrop.prototype.findDropableTargets = function(dragBlock) {
-	var DOMUtil = eXo.core.DOMUtil;
-  var dropableTargets = new Array() ;
-
-  if (dragBlock && DOMUtil.hasClass(dragBlock, "UIColumnContainer")) {
-    var container = eXo.core.DOMUtil.findAncestorByClass(dragBlock, "UIContainer");    
-    dropableTargets.push(container);
-    return dropableTargets;
+  var DOMUtil = eXo.core.DOMUtil;
+  var dropableTargets = new Array() ;  
+  
+  if (DOMUtil.hasClass(dragBlock, "UIColumnContainer")) {
+	var container = eXo.core.DOMUtil.findAncestorByClass(dragBlock, "UIContainer");    
+	dropableTargets.push(container);
+	return dropableTargets;		  
   }
-
-  var uiWorkingWorkspace = document.getElementById("UIWorkingWorkspace") ;  
+    
+  var uiWorkingWorkspace = document.getElementById("UIWorkingWorkspace") ;
   var pagebody = document.getElementById("UIPageBody");
   if(eXo.portal.portalMode && pagebody) {
-	  var uiPortal = DOMUtil.findFirstDescendantByClass(uiWorkingWorkspace, "div", "UIPortal") ;
+	var uiPortal = DOMUtil.findFirstDescendantByClass(uiWorkingWorkspace, "div", "UIPortal") ;
     dropableTargets.push(uiPortal) ;
   } else {
   	var uiPage = DOMUtil.findFirstDescendantByClass(uiWorkingWorkspace, "div", "UIPage") ;
@@ -377,6 +370,8 @@ PortalDragDrop.prototype.findDropableTargets = function(dragBlock) {
   	if(DOMUtil.hasClass(uiContainers[i], "ProtectedContainer")) continue;
   	if (DOMUtil.hasClass(uiContainers[i], "UITableColumnContainer")) continue;
   	if (DOMUtil.hasClass(uiContainers[i], "UIDashboardLayoutContainer")) continue;
+  	if ((DOMUtil.hasClass(dragBlock, "UIContainer") || DOMUtil.findAncestorById(dragBlock, "UIContainerList")) && 
+  			DOMUtil.hasClass(uiContainers[i], "ApplicationDropableOnly")) continue;
     dropableTargets.push(uiContainers[i]) ;
   }
   return dropableTargets ;

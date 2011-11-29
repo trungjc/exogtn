@@ -59,7 +59,7 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
   var DOMUtil = eXo.core.DOMUtil;
   if(!eXo.portal.portalMode || eXo.portal.isInDragging) return;
 	if(eXo.portal.portalMode <= 2 && DOMUtil.hasClass(portlet, "UIContainer")) return;
-	if(eXo.portal.portalMode === 3 && (DOMUtil.hasClass(portlet, "UIPortlet") || DOMUtil.hasClass(portlet, "UIGadget"))) return;
+	if(eXo.portal.portalMode === 3 && (DOMUtil.hasClass(portlet, "UIPortlet") || DOMUtil.hasClass(portlet, "UIGadgetDecorator"))) return;
 	
 	if(!event) event = window.event;
 	event.cancelBubble = true;
@@ -88,7 +88,7 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
 			width = viewBlock.offsetWidth;
 		}
 		
-		if(DOMUtil.hasClass(portlet, "UIPortlet") || DOMUtil.hasClass(portlet, "UIGadget")) {
+		if(DOMUtil.hasClass(portlet, "UIPortlet") || DOMUtil.hasClass(portlet, "UIGadgetDecorator")) {
 			newLayer.style.width = width + "px";
 			newLayer.style.height = height + "px";
 		} else {
@@ -118,7 +118,7 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
 				
 				var uiInfoBarWidth =  dragControlArea.offsetWidth;
 				
-				if(DOMUtil.hasClass(portlet, "UIPortlet") || DOMUtil.hasClass(portlet, "UIGadget")) {
+				if(DOMUtil.hasClass(portlet, "UIPortlet") || DOMUtil.hasClass(portlet, "UIGadgetDecorator")) {
 					uiInfoBarWidth += portletIcon.offsetWidth;
 					
 					if(editPortletPropertiesIcon){
@@ -150,7 +150,7 @@ UIPortal.prototype.blockOnMouseOver = function(event, portlet, isOver) {
 		
 	}	else {
 		editBlock.style.display = "none";
-		if(!DOMUtil.hasClass(portlet, "UIPortlet") && !DOMUtil.hasClass(portlet, "UIGadget")) {
+		if(!DOMUtil.hasClass(portlet, "UIPortlet") && !DOMUtil.hasClass(portlet, "UIGadgetDecorator")) {
 			var normalBlock = DOMUtil.findFirstChildByClass(portlet, "div", "OverContainerBlock");
 			if(normalBlock) DOMUtil.replaceClass(normalBlock, "OverContainerBlock", "NormalContainerBlock");
 		}
@@ -291,7 +291,7 @@ UIPortal.prototype.findUIComponentOf = function(element) {
   var parent;
   if (parent = DOMUtil.findAncestorByClass(element, "UIPortlet")) {
     return parent;
-  } else if (parent = DOMUtil.findAncestorByClass(element, "UIGadget")) {
+  } else if (parent = DOMUtil.findAncestorByClass(element, "UIGadgetDecorator")) {
     return parent;
   } else if (parent = DOMUtil.findAncestorByClass(element, "UIPageBody")) {
      return parent;
