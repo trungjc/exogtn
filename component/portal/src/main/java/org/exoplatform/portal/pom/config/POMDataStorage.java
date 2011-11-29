@@ -33,6 +33,7 @@ import org.exoplatform.portal.config.model.ApplicationType;
 import org.exoplatform.portal.config.model.CloneApplicationState;
 import org.exoplatform.portal.config.model.Container;
 import org.exoplatform.portal.config.model.ModelObject;
+import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PersistentApplicationState;
 import org.exoplatform.portal.config.model.PortalConfig;
 import org.exoplatform.portal.config.model.TransientApplicationState;
@@ -51,6 +52,7 @@ import org.exoplatform.portal.pom.data.Mapper;
 import org.exoplatform.portal.pom.data.ModelChange;
 import org.exoplatform.portal.pom.data.ModelData;
 import org.exoplatform.portal.pom.data.ModelDataStorage;
+import org.exoplatform.portal.pom.data.OwnerKey;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PageKey;
 import org.exoplatform.portal.pom.data.PortalData;
@@ -452,6 +454,8 @@ public class POMDataStorage implements ModelDataStorage
       mapper.save(tempPersistContainer, workspaceDst);
       mapper.saveChildren(tempPersistContainer, workspaceDst);
 
+      clearRelevantCache(session, parent);
+
       List<ComponentData> children = mapper.loadChildren(workspaceDst);
 
       return new ContainerData(
@@ -490,6 +494,8 @@ public class POMDataStorage implements ModelDataStorage
       mapper.save(container, dst);
       mapper.saveChildren(container, dst);
 
+      clearRelevantCache(session, dst);
+
       List<ComponentData> children = mapper.loadChildren(dst);
 
       return new ContainerData(
@@ -523,8 +529,69 @@ public class POMDataStorage implements ModelDataStorage
          throw new Exception("Associated workspace object not found!");
       }
 
-      deleteObject.getParent().getComponents().remove(deleteObject);
+      UIContainer parent = deleteObject.getParent();
+      parent.getComponents().remove(deleteObject);
+      clearRelevantCache(session, parent);
 
       return true;
    }
+
+   private void clearRelevantCache(POMSession session, UIContainer src)
+   {
+      org.gatein.mop.api.workspace.Page page = src.getPage();
+      Site site = page.getSite();
+
+      String siteType = Mapper.getOwnerType(site.getObjectType());
+      String siteName = site.getName();
+
+      OwnerKey key = null;
+
+      if(isPageData(page))
+      {
+         key = new PageKey(siteType, siteName, page.getName());
+      }
+      else
+      {
+         key = new PortalKey(siteType, siteName);
+      }
+      session.scheduleForEviction(key);
+   }
+
+   /**
+    * Check if given workspace Page object is associated with content of a page
+    *
+    * @param page
+    * @return
+    */
+   private boolean isPageData(org.gatein.mop.api.workspace.Page page)
+   {
+      org.gatein.mop.api.workspace.Page tempPage = page;
+      while(tempPage != null)
+      {
+         if("pages".equals(tempPage.getName()))
+         {
+            return true;
+         }
+         else if("templates".equals(tempPage.getName()))
+         {
+            return false;
+         }
+         else
+         {
+            org.gatein.mop.api.workspace.Page parent = tempPage.getParent();
+
+            //Avoid infinite loop
+            if(parent == tempPage)
+            {
+               return false;
+            }
+            else
+            {
+               tempPage = parent;
+            }
+         }
+      }
+      return false;
+   }
+
 }
