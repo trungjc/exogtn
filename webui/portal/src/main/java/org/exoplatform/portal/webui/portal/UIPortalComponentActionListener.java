@@ -24,16 +24,13 @@ import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.UserACL;
 import org.exoplatform.portal.config.UserPortalConfigService;
-import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
-import org.exoplatform.portal.config.model.CloneApplicationState;
 import org.exoplatform.portal.config.model.Container;
-import org.exoplatform.portal.config.model.TransientApplicationState;
-import org.exoplatform.portal.pom.spi.gadget.Gadget;
-import org.exoplatform.portal.webui.application.PortletState;
 import org.exoplatform.portal.webui.application.UIGadget;
 import org.exoplatform.portal.webui.application.UIPortlet;
 import org.exoplatform.portal.webui.application.UIWindow;
+import org.exoplatform.portal.webui.container.UIColumnContainer;
+import org.exoplatform.portal.webui.container.UIDashboardLayoutContainer;
 import org.exoplatform.portal.webui.container.UITabContainer;
 import org.exoplatform.portal.webui.login.UILogin;
 import org.exoplatform.portal.webui.login.UIResetPassword;
@@ -59,6 +56,7 @@ import org.exoplatform.webui.core.UITabPane;
 import org.exoplatform.webui.event.Event;
 import org.exoplatform.webui.event.EventListener;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /** Author : Nhu Dinh Thuan nhudinhthuan@yahoo.com Jun 14, 2006 */
@@ -167,9 +165,12 @@ public class UIPortalComponentActionListener
                return;
             }
          }
-         else if (org.exoplatform.portal.webui.container.UIContainer.TABLE_COLUMN_CONTAINER.equals(uiParent.getFactoryId()))
+         else if (UIDashboardLayoutContainer.DASHBOARD_LAYOUT_CONTAINER.equals(uiParent.getFactoryId()) ||
+                  org.exoplatform.portal.webui.container.UIContainer.TABLE_COLUMN_CONTAINER.equals(uiParent.getFactoryId()))
          {
-            if (uiParent.getChildren().size() == 1)
+            List<UIColumnContainer> columns = new LinkedList<UIColumnContainer>();
+            uiParent.findComponentOfType(columns, UIColumnContainer.class);
+            if (columns.size() == 1)
             {
                uiComponentTobeRemoved = uiParent;
             }
