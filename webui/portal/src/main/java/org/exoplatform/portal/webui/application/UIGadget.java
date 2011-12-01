@@ -529,12 +529,16 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
       @Override
       public void execute(Event<UIComponent> event) throws Exception
       {
+         UIComponent uiGadget = event.getSource();
+         UIDashboardLayoutContainer container = uiGadget.getAncestorOfType(UIDashboardLayoutContainer.class);
+         if (container == null || !container.canEdit())
+         {
+            return;
+         }
+         
          WebuiRequestContext context = event.getRequestContext();
          super.execute(event);
 
-         UIComponent uiGadget = event.getSource();
-         UIDashboardLayoutContainer container = uiGadget.getAncestorOfType(UIDashboardLayoutContainer.class);
-         if (container == null) return;
          
          UIPortalApplication uiApp = Util.getUIPortalApplication();
          if (uiApp.getModeState() == UIPortalApplication.NORMAL_MODE)

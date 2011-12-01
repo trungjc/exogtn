@@ -19,7 +19,7 @@
 	}	
 	
 	rcontext.getJavascriptManager().addCustomizedOnLoadScript("eXo.webui.UIDashboard.onLoad('" + 
-			uicomponent.id + "'," + hasPermission + ");") ;
+			uicomponent.id + "'," + uicomponent.canEdit() + ");") ;
 %>
 <div class="UIContainer UIDashboardLayoutContainer <%=uiPortalApp.isEditing()?"EdittingContainer":""%> <%=hasPermission?"":"ProtectedContainer"%>" 
 				id="${uicomponent.id}" 
@@ -46,11 +46,12 @@
 					if (!uiPortalApp.isEditing()) {
 					   uicomponent.renderChild(popupWindow);
 					}
-				%>		
-				<a class="AddIcon" style="visibility: <%= popupWindow.isShow() ? "hidden" : "visible"%>;" 
-								href="#" onclick="eXo.webui.UIDashboard.showHideSelectContainer(event);return false;">
+					if (uicomponent.canEdit()) { %>
+				<a class="AddIcon" style="visibility: <%= popupWindow.isShow() ? "hidden" : "visible"%>;" href="#" 
+						<% if (!uiPortalApp.isEditing()) { %> onclick="eXo.webui.UIDashboard.showHideSelectContainer(event);return false;" <%}%>>
 					<%=_ctx.appRes("UIDashboardContainer.label.openWorkspace");%>
 				</a>
+					<%} %>
 				<div class="NoWindow" style="display: <%=uicomponent.findFirstComponentOfType(UIWindow.class) != null ? "none" : "block"%>">
 					<%= _ctx.appRes("UIDashboard.msg.addGadget"); %>
 				</div>

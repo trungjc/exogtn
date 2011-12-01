@@ -298,25 +298,21 @@ function UIDashboard() {
 		for(var j=0; j<dragHandles.length; j++) {
 			dragHandles[j].style.cursor = "move";
 			var dragObject = DOMUtil.findAncestorByClass(dragHandles[j],"UIDragObject");
-			if (DOMUtil.hasClass(dragObject, "UIGadget")) {
+			if(canEdit) {
+				eXo.webui.UIDashboard.init(dragHandles[j], dragObject);					
+			} else{
 				var minimizeButton = DOMUtil.findFirstDescendantByClass(dragHandles[j], "span", "MinimizeAction") ;
-				if(canEdit) {
-					eXo.webui.UIDashboard.init(dragHandles[j], dragObject);
-					
-					if(minimizeButton) minimizeButton.style.display = "block" ;
-				} else{
-					if(minimizeButton) {
-						minimizeButton.style.display = "none" ;
-						var controlBar = minimizeButton.parentNode ;
-						var closeButton = DOMUtil.findFirstChildByClass(controlBar, "div", "CloseGadget") ;
-						var editButton = DOMUtil.findFirstChildByClass(controlBar, "div", "EditGadget") ;
-						closeButton.style.display = "none" ;
-						editButton.style.display = "none" ;
-					}
-				}				
-			} else {
-				eXo.webui.UIDashboard.init(dragHandles[j], dragObject);
-			}
+				if(minimizeButton) {
+					minimizeButton.style.display = "none" ;
+					var controlBar = minimizeButton.parentNode ;
+					var closeButton = DOMUtil.findFirstChildByClass(controlBar, "span", "CloseGadget") ;
+					var editButton = DOMUtil.findFirstChildByClass(controlBar, "span", "EditGadget") ;
+					var maximize = DOMUtil.findFirstChildByClass(controlBar, "span", "MaximizeAction") ;
+					if (maximize) maximize.style.display = "none";
+					if (closeButton) closeButton.style.display = "none" ;
+					if (editButton) editButton.style.display = "none" ;
+				}
+			}				
 		}		
 	};
 	

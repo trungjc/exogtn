@@ -27,14 +27,18 @@ import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.UserACL;
 import org.exoplatform.portal.config.model.ApplicationType;
 import org.exoplatform.portal.config.model.Container;
+import org.exoplatform.portal.config.model.Page;
+import org.exoplatform.portal.mop.user.UserNode;
 import org.exoplatform.portal.webui.application.UIGadget;
 import org.exoplatform.portal.webui.application.UIPortlet;
 import org.exoplatform.portal.webui.application.UIWindow;
+import org.exoplatform.portal.webui.portal.UIPortal;
 import org.exoplatform.portal.webui.util.PortalDataMapper;
 import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.portal.webui.workspace.UIPortalApplication;
 import org.exoplatform.web.application.ApplicationMessage;
 import org.exoplatform.webui.application.WebuiRequestContext;
+import org.exoplatform.webui.application.portlet.PortletRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.EventConfig;
 import org.exoplatform.webui.core.UIApplication;
@@ -75,6 +79,34 @@ public class UIDashboardLayoutContainer extends UIContainer
       super.processRender(context);
    }
 
+   /**
+    * The implementation returns true if the current user has edit permission on the page owning the dashboard
+    * portlet. Later it will be implemented with a finer granilarity.
+    * @throws Exception 
+    */
+   public boolean canEdit() throws Exception
+   {
+      UIPortalApplication portalApp = Util.getUIPortalApplication();
+      UIPortal portal = portalApp.getCurrentSite();
+
+      //
+      UserNode node = portal.getSelectedUserNode();
+      if (node != null)
+      {
+         String pageRef = node.getPageRef();
+         DataStorage storage = portal.getApplicationComponent(DataStorage.class);
+         Page page = storage.getPage(pageRef);
+         if (page != null)
+         {
+            UserACL userACL = portal.getApplicationComponent(UserACL.class);
+            return userACL.hasEditPermission(page);
+         }
+      }
+
+      //
+      return false;
+   }
+   
    public static class AddNewWindowActionListener extends EventListener<UIDashboardLayoutContainer>
    {
       @Override
@@ -82,7 +114,7 @@ public class UIDashboardLayoutContainer extends UIContainer
       {
          PortalRequestContext context = (PortalRequestContext)event.getRequestContext();
          UIDashboardLayoutContainer uiDashboard = event.getSource();
-         if (!uiDashboard.hasPermission())
+         if (!uiDashboard.canEdit())
          {
             return;
          }
@@ -151,7 +183,7 @@ public class UIDashboardLayoutContainer extends UIContainer
          {                                                               
             context.addUIComponentToUpdateByAjax(column);         
             context.getJavascriptManager().addCustomizedOnLoadScript("eXo.webui.UIDashboard.onLoad('" + 
-                              uiDashboard.getId() + "', " + uiDashboard.hasPermission() + ");");
+                              uiDashboard.getId() + "', " + uiDashboard.canEdit() + ");");
          }
       }
 
@@ -190,10 +222,11 @@ public class UIDashboardLayoutContainer extends UIContainer
       {
          PortalRequestContext context = (PortalRequestContext)event.getRequestContext();
          UIDashboardLayoutContainer uiDashboard = event.getSource();
-         if (!uiDashboard.hasPermission())
+         if (!uiDashboard.canEdit())
          {
             return;
          }
+         
          String col = context.getRequestParameter("columnId");
          int position = Integer.parseInt(context.getRequestParameter("position"));
          String objectId = context.getRequestParameter(UIComponent.OBJECTID);
@@ -246,6 +279,11 @@ public class UIDashboardLayoutContainer extends UIContainer
       public final void execute(final Event<UIDashboardLayoutContainer> event) throws Exception
       {
          UIDashboardLayoutContainer uiDashboard = (UIDashboardLayoutContainer)event.getSource();
+         if (!uiDashboard.canEdit())
+         {
+            return;
+         }
+         
          UIPopupWindow popupWindow = uiDashboard.getChild(UIPopupWindow.class);
          popupWindow.setShow(!popupWindow.isShow());
 
@@ -260,7 +298,7 @@ public class UIDashboardLayoutContainer extends UIContainer
          }
 
          context.getJavascriptManager().addCustomizedOnLoadScript(
-            "eXo.webui.UIDashboard.onLoad('" + uiDashboard.getId() + "'," + uiDashboard.hasPermission() + ");");
+            "eXo.webui.UIDashboard.onLoad('" + uiDashboard.getId() + "'," + uiDashboard.canEdit() + ");");
       }
    }
 }

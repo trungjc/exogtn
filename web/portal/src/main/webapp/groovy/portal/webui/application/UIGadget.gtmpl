@@ -59,7 +59,7 @@
 	    def userPref = null;    
 	   
 	    def isLossData = uicomponent.isLossData();
-	    if(!isLossData) {
+	    if(!isLossData && hasPermission) {
 	      	url = uicomponent.getUrl();
 	      	metadata = uicomponent.getRpcMetadata();
 	      	userPref = uicomponent.getUserPref();
@@ -82,11 +82,11 @@
 		<% if(uicomponent.showCloseButton()) { %>
 		<span class="CloseGadget IconControl" onclick="<%=uicomponent.event("DeleteGadget") %>" onmousedown="event.cancelBubble=true;" title="<%=_ctx.appRes("UIGadget.tooltip.deleteGadget")%>"></span>
 		<% } %>
-		<span class="<%=view.equals(uicomponent.HOME_VIEW) ? "MaximizeGadget" : "RestoreGadget";%> IconControl"
+		<span class="<%=view.equals(uicomponent.HOME_VIEW) ? "MaximizeGadget" : "RestoreGadget";%> MaximizeAction IconControl"
                         onclick="eXo.gadget.UIGadget.maximizeGadget(this)" onmousedown="event.cancelBubble=true;"
                         title="<%=view.equals(uicomponent.HOME_VIEW) ? maxiTitle : unmaxiTitle%>"></span>
 		<span class="<%=isMini ? "RestoreGadget": "MinimizeGadget";%> MinimizeAction IconControl" 
-						onclick="eXo.gadget.UIGadget.minimizeGadget(this)" onmousedown="event.cancelBubble=true;" style="display:none;" 
+						onclick="eXo.gadget.UIGadget.minimizeGadget(this)" onmousedown="event.cancelBubble=true;"
 						title="<%=isMini ? unminiTitle : miniTitle%>" miniTitle="$miniTitle" unminiTitle="$unminiTitle"></span>
 		<% if(uicomponent.isSettingUserPref()) { %>
         <span class="EditGadget IconControl" onclick="eXo.gadget.UIGadget.editGadget('$id')" onmousedown="event.cancelBubble=true;" title="<%=_ctx.appRes("UIGadget.tooltip.editGadget")%>"></span>
