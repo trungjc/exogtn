@@ -118,7 +118,7 @@
 	cursor: pointer;
 }
 
-/*----------------------UIGadgetsSelectorForm-------------------*/
+/*----------------------UIGadgetsSelectorForm OLD-------------------*/
 
 .UIDashboardSelectContainer {
 	height: 100%;
@@ -262,7 +262,7 @@
 	font-size: 11px;
 }
 
-/*----------------------UIGadgetsContainer-------------------*/
+/*----------------------UIGadgetsContainer OLD-------------------*/
 
 .UIDashboard .UIDashboardContainer .NoGadget {
 	text-align: center;
@@ -270,7 +270,7 @@
 	padding: 5px; color: #111;
 }
 
-/*------------------UIDashboardContainer----------------*/
+/*------------------UIDashboardContainer OLD----------------*/
 
 .UIDashboardContainer {
 	height: 100%;
@@ -434,3 +434,207 @@
 	_width: 98%;
 }
 
+
+
+
+/*----------------------UIGadgetsSelectorForm New------------------*/
+
+
+.UIDashboardLayoutContainer   .UIPopupWindow {
+	width: 240px;
+	text-align:left;
+}
+
+
+.UIDashboardContentList {
+	height: 100%;
+}
+
+.UIDashboardContentList .DashboardControlBar {
+	height: 23px;
+	background: url('background/Dashboard.gif') repeat-x top;
+	border-bottom: 1px solid #b7b7b7;
+}
+
+.UIDashboardContentList .TitleBar {
+	color: black;
+	font-weight: bold;
+	line-height: 23px;
+	float: left; /* orientation=lt */
+	float: right; /* orientation=rt */
+	padding-left: 10px; /* orientation=lt */
+	padding-right: 10px; /* orientation=rt */
+}
+
+.UIDashboardContentList .CloseIcon {
+	float: right; /* orientation=lt */
+	float: left; /* orientation=rt */
+	background: url('background/Dashboard.gif') no-repeat left -180px;
+	height: 20px;
+	width: 20px;
+}
+
+.UIDashboardContentList .DashboardItemContainer .InputContainer {
+	padding: 4px 0px 4px 10px;
+	_padding: 0px 10px;
+	background: #ececec;
+}
+
+.UIDashboardContentList .DashboardItemContainer .InputContainer input {
+	margin: 0 3px 0 0px;
+	border: 1px solid #b8babf;
+	font-size: 11px; 
+	width: 165px;
+}
+
+.UIDashboardContentList .DashboardItemContainer .GadgetItemsContainer {
+	border-top: 1px solid #b7b7b7;
+	font-weight: bold;
+}
+
+.UIDashboardContentList .DashboardItemContainer .TopItemContainer {
+	background: url('background/Dashboard.gif') repeat-x center -37px;
+	height: 11px;
+	padding: 1px;
+	border-bottom: 1px solid #b7b7b7;
+	display: none;
+}
+
+.UIDashboardContentList .DashboardItemContainer .UpArrowIcon {
+	background: url('background/Dashboard.gif') repeat-x center -98px;
+	height: 11px; width: 15px;
+	margin: auto;
+	cursor: pointer;
+}
+
+.UIDashboardContentList .DashboardItemContainer .DisableArrowIcon {
+	filter: alpha(opacity=30);
+	-moz-opacity: 0.3;
+}
+
+.UIDashboardContentList .DashboardItemContainer .MiddleItemContainer {
+	overflow: hidden;
+}
+	
+.UIDashboardContentList .DashboardItemContainer .BottomItemContainer {
+	background: url('background/Dashboard.gif') repeat-x center -37px;
+	height: 11px;
+	padding: 1px;
+	border-top: 1px solid #b7b7b7;
+	display: none;
+}
+
+.UIDashboardContentList .DashboardItemContainer .DownArrowIcon {
+	background: url('background/Dashboard.gif') repeat-x center -114px;
+	height: 11px; width: 15px;
+	margin: auto;
+	cursor: pointer;
+}
+
+.UIDashboardContentList .DashboardItemContainer .DisableContainer {
+	background:	url('background/Dashboard.gif') repeat-x center -23px;
+}
+
+.UIDashboardContentList .DashboardItemContainer .GadgetCategory {
+	padding: 10px;
+	text-transform: capitalize;
+}
+
+.UIDashboardContentList .GadgetCategory .GadgetTab {
+	background: url('background/CategoryTitleBar.gif') repeat-x left top;
+	border: 1px solid #b8babf;
+	height: 23px;
+	padding: 0px 8px;
+}
+
+.UIDashboardContentList .GadgetCategory .GadgetTab .ArrowIcon {
+	background: url('background/ArrowIcon.gif') no-repeat left -20px; /* orientation=lt */
+	background: url('background/ArrowIcon.gif') no-repeat right -20px; /* orientation=rt */
+	line-height: 23px;
+	overflow: hidden;
+	padding-left: 18px; /* orientation=lt */
+	padding-right: 18px; /* orientation=rt */
+	color: #000;
+	font-weight: normal;
+}
+
+.UIDashboardContentList .GadgetCategory .SelectedTab .ArrowIcon {
+	background: url('background/ArrowIcon.gif') no-repeat left 3px; /* orientation=lt */
+	background: url('background/ArrowIcon.gif') no-repeat right 3px; /* orientation=rt */
+}
+
+.UIDashboardContentList .GadgetCategory .ItemsContainer {
+	background: #fff url('background/BGItemsContainer.gif') repeat-x left 1px;
+	border: 1px solid #b8babf;
+	border-top: none;
+	padding: 8px 8px 4px 8px;
+}
+
+.UIDashboardContentList .GadgetCategory .UIGadget {
+	background: url('background/GadgetControl.gif') repeat-x left top;
+	margin: 0px 0px 4px 0px;
+	height: 18px;
+	line-height: 18px;
+	color: #676767;
+	padding: 0px;
+	background: #f2f2f3;
+}
+
+.UIDashboardContentList .GadgetTitle {
+	width: 150px;	
+	float: none;
+	margin: 0px !important;
+	line-height: 21px;
+	font-size: 11px;
+}
+
+
+
+/*----------------------UIGadgetsContainer New-------------------*/
+
+.UIDashboardLayoutContainer .NoWindow {
+	text-align: center;
+	font-size: 12px; font-weight: bold; 
+	padding: 5px; color: #111;
+}
+
+
+/*------------------UIDashboardLayoutContainer New----------------*/
+
+
+.UIDashboardLayoutContainer  .UIComponentBlock  > .VIEW-CONTAINER{
+	overflow: auto;
+	height: 100%;
+	min-height: 320px;
+	_height: 320px;
+	padding: 8px;
+	text-align: right;/* orientation=lt */
+	text-align: left;/* orientation=rt */
+}
+
+.UIDashboardLayoutContainer   .AddIcon {
+	background: url('background/AddGadget.gif') no-repeat left center; /* orientation=lt */
+	background: url('background/AddGadget.gif') no-repeat right center; /* orientation=rt */
+	padding-left: 24px; /* orientation=lt */
+	padding-right: 24px; /* orientation=rt */
+	width: 200px; /* orientation=rt */
+	font-size: 12px;
+	line-height: 30px;
+	text-decoration: underline;
+	color: #226ab3;
+}
+
+.UIDashboardLayoutContainer  .AddIcon a:hover {
+	text-decoration: none;
+}
+
+
+.UIDashboardContainer .UIGadget .GadgetMenuBar{
+	text-align: left; /* orientation=lt */
+	text-align: right; /* orientation=rt */
+}
+
+.UIDashboardLayoutContainer .UITarget {
+	background: #f2f2f3;
+	margin: 5px 5px 10px 5px;
+}

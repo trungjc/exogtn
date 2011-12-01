@@ -531,43 +531,45 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
       {
          UIComponent uiGadget = event.getSource();
          UIDashboardLayoutContainer container = uiGadget.getAncestorOfType(UIDashboardLayoutContainer.class);
-         if (container == null || !container.canEdit())
+         if (container != null && !container.canEdit())
          {
             return;
          }
          
          WebuiRequestContext context = event.getRequestContext();
          super.execute(event);
-
          
          UIPortalApplication uiApp = Util.getUIPortalApplication();
-         if (uiApp.getModeState() == UIPortalApplication.NORMAL_MODE)
+         if (container != null)
          {
-            // String objectId = context.getRequestParameter(OBJECTID);
-
-            // if (uiDashboard.getMaximizedGadget() != null &&
-            // uiDashboard.getMaximizedGadget().getId().equals(objectId))
-            // {
-            // uiDashboard.setMaximizedGadget(null);
-            // }
-
-            // Save
-            DataStorage storage = uiGadget.getApplicationComponent(DataStorage.class);
-            try
+            if (uiApp.getModeState() == UIPortalApplication.NORMAL_MODE)
             {
-               storage.saveContainer((Container)PortalDataMapper.buildModelObject(uiGadget.getParent()));
+               // String objectId = context.getRequestParameter(OBJECTID);
+               
+               // if (uiDashboard.getMaximizedGadget() != null &&
+               // uiDashboard.getMaximizedGadget().getId().equals(objectId))
+               // {
+               // uiDashboard.setMaximizedGadget(null);
+               // }
+               
+               // Save
+               DataStorage storage = uiGadget.getApplicationComponent(DataStorage.class);
+               try
+               {
+                  storage.saveContainer((Container)PortalDataMapper.buildModelObject(uiGadget.getParent()));
+               }
+               catch (Exception ex)
+               {
+                  context.getUIApplication().addMessage(
+                     new ApplicationMessage("UIDashboard.msg.StaleData", null, ApplicationMessage.ERROR));
+                  context.addUIComponentToUpdateByAjax(container);
+               }         
             }
-            catch (Exception ex)
+            
+            if (container.findFirstComponentOfType(UIWindow.class) == null)
             {
-               context.getUIApplication().addMessage(
-                  new ApplicationMessage("UIDashboard.msg.StaleData", null, ApplicationMessage.ERROR));
-               context.addUIComponentToUpdateByAjax(container);
-            }         
-         }
-         
-         if (container.findFirstComponentOfType(UIWindow.class) == null)
-         {
-            context.getJavascriptManager().addCustomizedOnLoadScript("eXo.webui.UIDashboard.toogleState(" + container.getId() + ");");
+               context.getJavascriptManager().addCustomizedOnLoadScript("eXo.webui.UIDashboard.toogleState(" + container.getId() + ");");
+            }            
          }
       }
    }
