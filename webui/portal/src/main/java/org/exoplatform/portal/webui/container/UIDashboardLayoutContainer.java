@@ -130,7 +130,7 @@ public class UIDashboardLayoutContainer extends UIContainer
          if (application == null)
          {
             UIApplication uiApplication = context.getUIApplication();
-            uiApplication.addMessage(new ApplicationMessage("UIDashboard.msg.ApplicationNotExisted", null));
+            uiApplication.addMessage(new ApplicationMessage("UIDashboardLayoutContainer.msg.ApplicationNotExisted", null));
             context.addUIComponentToUpdateByAjax(uiDashboard);            
             return;
          }

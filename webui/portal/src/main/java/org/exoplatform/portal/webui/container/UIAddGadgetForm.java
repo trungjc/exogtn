@@ -69,13 +69,13 @@ public class UIAddGadgetForm extends UIForm
          UIApplication uiApplication = context.getUIApplication();
          if (url == null || url.trim().length() == 0)
          {
-            uiApplication.addMessage(new ApplicationMessage("UIDashboard.msg.required", null));
+            uiApplication.addMessage(new ApplicationMessage("UIAddGadgetForm.msg.required", null));
             return;
          }
          url = url.trim();
          if (!url.matches(URLValidator.URL_REGEX))
          {
-            uiApplication.addMessage(new ApplicationMessage("UIDashboard.msg.notUrl", null));
+            uiApplication.addMessage(new ApplicationMessage("UIAddGadgetForm.msg.notUrl", null));
             return;
          }
          Gadget gadget;

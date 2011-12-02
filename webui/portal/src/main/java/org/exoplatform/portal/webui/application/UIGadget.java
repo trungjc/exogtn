@@ -477,7 +477,7 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
             UIPortletApplication uiPortlet = uiGadget.getAncestorOfType(UIPortletApplication.class);
             context.addUIComponentToUpdateByAjax(uiPortlet);
             context.setAttribute(UIGadget.SAVE_PREF_FAIL, true);
-            throw new MessageException(new ApplicationMessage("UIDashboard.msg.ApplicationNotExisted", null, ApplicationMessage.ERROR));
+            throw new MessageException(new ApplicationMessage("UIDashboardLayoutContainer.msg.ApplicationNotExisted", null, ApplicationMessage.ERROR));
          }
 
          //
@@ -485,7 +485,7 @@ public class UIGadget extends UIWindow<org.exoplatform.portal.pom.spi.gadget.Gad
          {
             /*
             UIPortalApplication uiApp = Util.getUIPortalApplication();
-            uiApp.addMessage(new ApplicationMessage("UIDashboard.msg.ApplicationNotExisted", null));
+            uiApp.addMessage(new ApplicationMessage("UIDashboardLayoutContainer.msg.ApplicationNotExisted", null));
             PortalRequestContext pcontext = Util.getPortalRequestContext();
             pcontext.addUIComponentToUpdateByAjax(uiApp.getUIPopupMessages());
             */
