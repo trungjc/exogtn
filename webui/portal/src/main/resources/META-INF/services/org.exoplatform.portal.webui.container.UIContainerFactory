@@ -1,0 +1,4 @@
+org.exoplatform.portal.webui.container.UITabContainerFactory
+org.exoplatform.portal.webui.container.UIColumnContainerFactory
+org.exoplatform.portal.webui.container.UITableColumnContainerFactory
+org.exoplatform.portal.webui.container.UIDashboardLayoutContainerFactory

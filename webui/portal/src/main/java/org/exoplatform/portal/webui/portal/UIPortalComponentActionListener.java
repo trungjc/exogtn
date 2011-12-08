@@ -30,6 +30,7 @@ import org.exoplatform.portal.webui.application.UIGadget;
 import org.exoplatform.portal.webui.application.UIPortlet;
 import org.exoplatform.portal.webui.application.UIWindow;
 import org.exoplatform.portal.webui.container.UIColumnContainer;
+import org.exoplatform.portal.webui.container.UIContainerFactory;
 import org.exoplatform.portal.webui.container.UIDashboardLayoutContainer;
 import org.exoplatform.portal.webui.container.UITabContainer;
 import org.exoplatform.portal.webui.login.UILogin;
@@ -265,10 +266,10 @@ public class UIPortalComponentActionListener
             UIContainerList uiContainerConfig = subTabPane.getChild(UIContainerList.class);
             if (uiContainerConfig != null && subTabPane.getSelectedTabId().equals(uiContainerConfig.getId()))
             {
-               org.exoplatform.portal.webui.container.UIContainer uiContainer =
-                  uiTarget.createUIComponent(org.exoplatform.portal.webui.container.UIContainer.class, null, null);
                Container container = uiContainerConfig.getContainer(sourceId);
                container.setId(String.valueOf(container.hashCode()));
+               UIContainerFactory factory = UIContainerFactory.getFactoryInstance(container.getFactoryId());
+               org.exoplatform.portal.webui.container.UIContainer uiContainer = factory.createContainer(pcontext);
                uiContainer.setStorageId(container.getStorageId());
                PortalDataMapper.toUIContainer(uiContainer, container);
                String[] accessPers = uiContainer.getAccessPermissions();
