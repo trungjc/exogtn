@@ -1,0 +1,46 @@
+#{decorate path=navigation.gtmpl/}
+#{param name=oauthStoreEntry/}
+#{param name=message/}
+
+
+<div class="AddEntry">
+	<form action="@{UIShindigOAuth.submitNewEntry()}" method="post">
+		<div><h2>Add OAuth Store Consumer</h2></div>
+
+		<% if (message != null) { %>
+			<div class="OMessage">${message}</div>
+		<% } %>
+
+		<table align="center">
+		    <tr>
+				<td>Gadget Uri</td>
+				<td><input type="text" name="gadgetUri" value="" />*</td>
+			</tr>
+			<tr>
+				<td>Service Name</td>
+				<td><input type="text" name="serviceName" value="" />*</td>
+			</tr>
+			<tr><td>-----------------------------------------------------</td>
+				<td>------------------------</td>
+			</tr>
+			<tr>
+				<td>Consumer key</td>
+				<td><input type="text" name="consumerKey" value="" />*</td>
+			</tr>
+			<tr>
+				<td>Consumer secret</td>
+				<td><input type="text" name="consumerSecret" value="" />*</td>
+			</tr>
+			<tr>
+				<td>Key Type</td>
+				<td><select name="keyType">
+					 <option value="HMAC_SYMMETRIC">HMAC_SYMMETRIC</option>
+			         <option value="RSA_PRIVATE">RSA_PRIVATE</option>      
+			      </select></td>
+			</tr>
+		</table>
+
+		<input type="submit" value="Add" class="OSubmit" />
+		<br />
+	</form>
+</div>

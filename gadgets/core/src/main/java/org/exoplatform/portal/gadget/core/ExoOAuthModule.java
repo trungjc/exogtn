@@ -92,10 +92,7 @@ public class ExoOAuthModule extends OAuthModule
          
          String defaultCallbackUrl = config.getString(ContainerConfig.DEFAULT_CONTAINER,CALLBACK_URL);
          store.setDefaultCallbackUrl(defaultCallbackUrl);
-         loadConsumers();
       }
-      
-
 
       private void loadDefaultKey(String signingKeyFile, String signingKeyName) {
         BasicOAuthStoreConsumerKeyAndSecret key = null;
@@ -120,15 +117,6 @@ public class ExoOAuthModule extends OAuthModule
               '\n' +
               "Then edit gadgets.properties and add these lines:\n" +
               SIGNING_KEY_FILE + "=<path-to-oauthkey.pem>\n");
-        }
-      }
-
-      private void loadConsumers() {
-        try {
-          String oauthConfigString = ResourceLoader.getContent(OAUTH_CONFIG);
-          store.initFromConfigString(oauthConfigString);
-        } catch (Throwable t) {
-          log.warn("Failed to initialize OAuth consumers from " + OAUTH_CONFIG, t);
         }
       }
 

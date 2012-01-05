@@ -1,0 +1,38 @@
+#{param name=allOSConsumers/}
+
+<div class="OAuthConsumer">
+	<div><h1>
+	Shindig OAuth Store: Manage Consumer Information</h1></div>
+	<div>
+	<% if(allOSConsumers != null) { %>
+		<table border="1">
+			<tr bgcolor="#99CCFF">
+				<td valign="top"><b>Gadget Uri</b></td>
+				<td valign="top"><b>Service Name</b></td>
+				<td valign="top"><b>Consumer Key</b></td>
+				<td valign="top"><b>Consumer Secret</b></td>
+				<td valign="top"><b>Key Type</b></td>
+				<td valign="top"><b>Action</b></td>
+			</tr>
+			 <% allOSConsumers.each { key, entry -> %>
+				<tr>
+					<td>${key.gadgetUri}</td>
+					<td>${key.serviceName}</td>
+					<td>${entry.consumerKey}</td>
+					<td>${entry.consumerSecret}</td>
+					<td>${entry.keyType}</td>
+					<td>
+					    <p>
+					    	<a href="@{UIShindigOAuth.deleteEntry(gadgetUri = key.gadgetUri, serviceName = key.serviceName)}" title="Delete this entry">Delete</a>
+    					</p>
+					</td>
+				</tr>
+			<% } %>
+		</table>
+	<% } %>
+	<br />
+	    <p>
+    		<a class="OSummit" href="@{UIShindigOAuth.showAddNewEntry()}">Add a new entry</a>
+		</p>
+	</div>
+</div>

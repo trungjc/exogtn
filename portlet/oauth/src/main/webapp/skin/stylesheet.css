@@ -1,0 +1,29 @@
+.OAuthConsumer h1 {
+	font-size: 18px;
+	color: black;
+	text-align: center;
+	font-weight:bold;
+}
+
+.OAuthConsumer table {	
+	table-layout: fixed;
+}
+
+.OAuthConsumer table td {
+	word-wrap: break-word;
+}
+
+.OSummit {
+	background-color: #00A0D1;
+	color: white;
+	text-align: center;
+	-webkit-border-radius: 40px;
+	border-radius: 40px;
+	padding: 3px 20px;
+}
+
+.OMessage {
+	color: red;
+	text-align: center;
+	font-size: 14px;
+}

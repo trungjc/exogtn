@@ -1,0 +1,6 @@
+<div class="ShindigOAuth">
+	<div class="ONavigation"><a href="@{UIShindigOAuth.index()}"><<< Back to List</a></div>
+	<br />
+
+	#{insert/}
+</div>

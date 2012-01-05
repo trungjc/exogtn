@@ -211,6 +211,9 @@ function getModule(params)
    module.portlet.web =
    new Project("org.exoplatform.portal", "exo.portal.portlet.web", "exo-portlet", module.version);
 
+   module.portlet.oauth =
+   new Project("org.exoplatform.portal", "exo.portal.portlet.oauth", "exo-portlet", module.version);
+
    module.portlet.dashboard =
    new Project("org.exoplatform.portal", "exo.portal.portlet.dashboard", "exo-portlet", module.version).
       addDependency(new Project("org.exoplatform.portal", "exo.portal.webui.dashboard", "jar", module.version));
