@@ -94,15 +94,16 @@ public class ExoOAuthDataService
       if (oauthConfig != null)
       {
          String oauthFile = oauthConfig.getValue();
-         this.loadOAuthData(oauthFile);
+         this.loadOAuthStoreConsumer(oauthFile);
       }
    }
    
-   private void loadOAuthData(String file)
+   private void loadOAuthStoreConsumer(String file)
    {
       try
       {
-         String oauthConfigString = ResourceLoader.getContent(file);
+         GateInContainerConfigLoader currentLoader = GateInGuiceServletContextListener.getCurrentLoader();
+         String oauthConfigString = currentLoader.loadContentAsString(file, "UTF-8");
          this.initFromConfigString(oauthConfigString);
       }
       catch (Exception e)
