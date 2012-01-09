@@ -18,7 +18,6 @@
  */
 package org.exoplatform.portal.gadget.core;
 
-import org.exoplatform.portal.gadget.core.impl.OAuthStoreConsumer;
 
 import java.util.List;
 import java.util.Map;
@@ -51,8 +50,9 @@ public interface OAuthStoreConsumerService
    /**
     * Store consumer into storage
     * @param consumer
+    *  @throws Exception when keyName is duplication to another consumer
     */
-   public void storeConsumer(OAuthStoreConsumer consumer);
+   public void storeConsumer(OAuthStoreConsumer consumer) throws Exception;
 
    /**
     * Remove consumer with name
@@ -71,31 +71,31 @@ public interface OAuthStoreConsumerService
     * Relationship of consumer and gadget uri is many to many
     * @return list of consumer, map key is gadget uri
     */
-   public Map<String, OAuthStoreConsumer> getAllMappingConsumerAndGadget();
+   public Map<String, OAuthStoreConsumer> getAllMappingKeyAndGadget();
    
    /**
     * Add new mapping configuration of a consumer and gadget uri
     * Relationship of consumer and gadget uri is many to many
-    * @param consumerName name of an existing consumer
+    * @param keyName name of an existing consumer
     * @param gadgetUri
-    * @throws Exception if consumerName indicates non-existing consumer or gadgetUri is not URL format standard
+    * @throws Exception if keyName indicates non-existing consumer or gadgetUri is not URL format standard
     */
-   public void addMappingConsumerAndGadget(String consumerName, String gadgetUri) throws Exception;
+   public void addMappingKeyAndGadget(String keyName, String gadgetUri) throws Exception;
 
    /**
     * Find a mapping configuration of a consumer and gadget uri
     * Relationship of consumer and gadget uri is many to many
-    * @param consumerName
+    * @param keyName
     * @param gadgetUri
     * @return consumer or null if not found any mapping configuration
     */
-   public OAuthStoreConsumer findMappingConsumerAndGadget(String consumerName, String gadgetUri);
+   public OAuthStoreConsumer findMappingKeyAndGadget(String keyName, String gadgetUri);
    
    /**
     * Remove configuration of consumer and gadget uri
     * Relationship of consumer and gadget uri is many to many
-    * @param consumerName
+    * @param keyName
     * @param gadgetUri
     */
-   public void removeMappingConsumerAndGadget(String consumerName, String gadgetUri);
+   public void removeMappingKeyAndGadget(String keyName, String gadgetUri);
 }

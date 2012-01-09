@@ -16,8 +16,8 @@
 				<td><input type="text" name="gadgetUri" value="" />*</td>
 			</tr>
 			<tr>
-				<td>Service Name</td>
-				<td><input type="text" name="consumerName" value="" />*</td>
+				<td>Key Name</td>
+				<td><input type="text" name="keyName" value="" />*</td>
 			</tr>
 			<tr><td>-----------------------------------------------------</td>
 				<td>------------------------</td>

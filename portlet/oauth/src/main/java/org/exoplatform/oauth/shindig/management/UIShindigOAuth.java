@@ -21,9 +21,9 @@ package org.exoplatform.oauth.shindig.management;
 
 import org.apache.shindig.protocol.DataServiceServlet;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.portal.gadget.core.OAuthStoreConsumer;
 import org.exoplatform.portal.gadget.core.OAuthStoreConsumerService;
 import org.exoplatform.portal.gadget.core.ExoOAuthStore;
-import org.exoplatform.portal.gadget.core.impl.OAuthStoreConsumer;
 import org.juzu.Action;
 import org.juzu.Path;
 import org.juzu.Response;
@@ -66,7 +66,7 @@ public class UIShindigOAuth
    {
       OAuthStoreConsumerService store =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
-      Map<String, OAuthStoreConsumer> allConsumers = store.getAllMappingConsumerAndGadget();
+      Map<String, OAuthStoreConsumer> allConsumers = store.getAllMappingKeyAndGadget();
       oauthList.allConsumers(allConsumers).render();
    }
    
@@ -77,11 +77,11 @@ public class UIShindigOAuth
    }
    
    @Action
-   public Response deleteEntry(String consumerName, String gadgetUri)
+   public Response deleteEntry(String keyName, String gadgetUri)
    {
       OAuthStoreConsumerService dataService =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
-      dataService.removeMappingConsumerAndGadget(consumerName, gadgetUri);
+      dataService.removeMappingKeyAndGadget(keyName, gadgetUri);
       return UIShindigOAuth_.index();
    }
    
@@ -92,9 +92,9 @@ public class UIShindigOAuth
    }
    
    @Action
-   public Response submitNewEntry(String gadgetUri, String consumerName, String consumerKey, String consumerSecret, String keyType)
+   public Response submitNewEntry(String gadgetUri, String keyName, String consumerKey, String consumerSecret, String keyType)
    {
-      if (gadgetUri == "" || consumerName == "" || consumerKey == "" || consumerSecret == "" || keyType == "")
+      if (gadgetUri == "" || keyName == "" || consumerKey == "" || consumerSecret == "" || keyType == "")
       {
          message = "You must fill all fields";
          storeEntry = null;
@@ -107,8 +107,16 @@ public class UIShindigOAuth
       
       OAuthStoreConsumerService dataService =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
-      OAuthStoreConsumer consumer = new OAuthStoreConsumer(consumerName, consumerKey, consumerSecret, keyType, null);
-      dataService.storeConsumer(consumer);
+      OAuthStoreConsumer consumer = new OAuthStoreConsumer(keyName, consumerKey, consumerSecret, keyType, null);
+      try
+      {
+         dataService.storeConsumer(consumer);
+      }
+      catch (Exception e)
+      {
+         //should log this
+         e.printStackTrace();
+      }
       
       return UIShindigOAuth_.index();
    }

@@ -2,13 +2,13 @@
 
 <div class="OAuthConsumer">
 	<div><h1>
-	Shindig OAuth Store: Manage Consumer Information</h1></div>
+	Shindig OAuth Store: Manage configuration mappings of gadget and OAuth Consumer key</h1></div>
 	<div>
 	<% if(allConsumers != null) { %>
 		<table border="1">
 			<tr bgcolor="#99CCFF">
 				<td valign="top"><b>Gadget Uri</b></td>
-				<td valign="top"><b>Consumer Name</b></td>
+				<td valign="top"><b>Key Name</b></td>
 				<td valign="top"><b>Consumer Key</b></td>
 				<td valign="top"><b>Consumer Secret</b></td>
 				<td valign="top"><b>Key Type</b></td>
@@ -17,13 +17,13 @@
 			 <% allConsumers.each { key, entry -> %>
 				<tr>
 					<td>${key}</td>
-					<td>${entry.consumerName}</td>
+					<td>${entry.keyName}</td>
 					<td>${entry.consumerKey}</td>
 					<td>${entry.consumerSecret}</td>
 					<td>${entry.keyType}</td>
 					<td>
 					    <p>
-					    	<a href="@{UIShindigOAuth.deleteEntry(consumerName = entry.consumerName, gadgetUri = key)}" title="Delete this entry">Delete</a>
+					    	<a href="@{UIShindigOAuth.deleteEntry(keyName = entry.keyName, gadgetUri = key)}" title="Delete this entry">Delete</a>
     					</p>
 					</td>
 				</tr>

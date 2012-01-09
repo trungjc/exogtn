@@ -21,6 +21,7 @@ package org.exoplatform.portal.gadget.core.impl;
 import org.chromattic.api.annotations.Create;
 import org.chromattic.api.annotations.OneToMany;
 import org.chromattic.api.annotations.PrimaryType;
+import org.chromattic.api.annotations.Property;
 
 import java.util.Map;
 
@@ -31,6 +32,11 @@ import java.util.Map;
 @PrimaryType(name = "shindig:oauthcontainer")
 public abstract class OAuthStoreContainer
 {
+   @Property(name = "defaultKeyName")
+   public abstract String getDefaultKeyName();
+   
+   public abstract void setDefaultKeyName(String defaultKeyName);
+   
    @Create
    protected abstract OAuthStoreConsumerEntry createOAuthStoreEntry();
    

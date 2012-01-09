@@ -24,21 +24,13 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.shindig.auth.AnonymousAuthenticationHandler;
 import org.apache.shindig.common.crypto.BlobCrypter;
-import org.apache.shindig.common.util.ResourceLoader;
 import org.apache.shindig.config.ContainerConfig;
-import org.apache.shindig.gadgets.oauth.BasicOAuthStore;
-import org.apache.shindig.gadgets.oauth.BasicOAuthStoreConsumerKeyAndSecret;
-import org.apache.shindig.gadgets.oauth.BasicOAuthStoreConsumerKeyAndSecret.KeyType;
 import org.apache.shindig.gadgets.oauth.OAuthFetcherConfig;
 import org.apache.shindig.gadgets.oauth.OAuthModule;
 import org.apache.shindig.gadgets.oauth.OAuthRequest;
 import org.apache.shindig.gadgets.oauth.OAuthStore;
-import org.exoplatform.services.log.ExoLogger;
-import org.exoplatform.services.log.Log;
 
 /**
  * Created by IntelliJ IDEA.
@@ -80,11 +72,10 @@ public class ExoOAuthModule extends OAuthModule
      @Inject
       public ExoOAuthStoreProvider(ContainerConfig config)
       {
-         store = new ExoOAuthStore();
-         
-         store.setDetaultKeyFile(config.getString(ContainerConfig.DEFAULT_CONTAINER, SIGNING_KEY_FILE));
-         store.setDetaultKeyName(config.getString(ContainerConfig.DEFAULT_CONTAINER, SIGNING_KEY_NAME));         
-         store.setDefaultCallbackUrl(config.getString(ContainerConfig.DEFAULT_CONTAINER,CALLBACK_URL));
+         String signingKeyFile = config.getString(ContainerConfig.DEFAULT_CONTAINER, SIGNING_KEY_FILE);
+         String signingKeyName = config.getString(ContainerConfig.DEFAULT_CONTAINER, SIGNING_KEY_NAME);         
+         String defaultCallbackUrl = config.getString(ContainerConfig.DEFAULT_CONTAINER,CALLBACK_URL);
+         store = new ExoOAuthStore(signingKeyFile, signingKeyName, defaultCallbackUrl);
       }
 
       public OAuthStore get() {

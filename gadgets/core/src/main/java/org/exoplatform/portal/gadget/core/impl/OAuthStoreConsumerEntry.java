@@ -20,6 +20,7 @@ package org.exoplatform.portal.gadget.core.impl;
 
 import org.chromattic.api.annotations.PrimaryType;
 import org.chromattic.api.annotations.Property;
+import org.exoplatform.portal.gadget.core.OAuthStoreConsumer;
 
 /**
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
@@ -28,10 +29,10 @@ import org.chromattic.api.annotations.Property;
 @PrimaryType(name = "shindig:oauthconsumer")
 public abstract class OAuthStoreConsumerEntry
 {
-   @Property(name = "consumerName")
-   public abstract String getConsumerName();
+   @Property(name = "keyName")
+   public abstract String getKeyName();
    
-   public abstract void setConsumerName(String consumerName);
+   public abstract void setKeyName(String keyName);
    
    @Property(name = "consumerKey")
    public abstract String getConsumerKey();
@@ -55,7 +56,7 @@ public abstract class OAuthStoreConsumerEntry
    
    public OAuthStoreConsumer toOAuthStoreConsumer()
    {
-      return new OAuthStoreConsumer(this.getConsumerName(), this.getConsumerKey(), this.getConsumerSecret(), this
+      return new OAuthStoreConsumer(this.getKeyName(), this.getConsumerKey(), this.getConsumerSecret(), this
          .getKeyType(), this.getCallbackUrl());
    }
 

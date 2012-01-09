@@ -16,45 +16,47 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.oauth.shindig.management;
+package org.exoplatform.portal.gadget.core;
 
-import org.apache.shindig.gadgets.oauth.OAuthStore.ConsumerInfo;
-import org.exoplatform.portal.gadget.core.OAuthStoreConsumer;
-import org.juzu.SessionScoped;
+import org.exoplatform.container.component.RequestLifeCycle;
+import org.exoplatform.container.web.AbstractFilter;
 
-import java.io.Serializable;
+import java.io.IOException;
 
-import javax.inject.Named;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 
 /**
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
  * @version $Revision$
  */
-@Named("StoreEntry")
-@SessionScoped
-public class StoreEntry implements Serializable
+public class OAuthStoreTransactionFilter extends AbstractFilter
 {
-   private static final long serialVersionUID = 1L;
-   private String gadgetUri;
-   private OAuthStoreConsumer consumer;
-   
-   public void setGadgetUri(String gadgetUri)
+   /**
+    * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
+    */
+   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
+      ServletException
    {
-      this.gadgetUri = gadgetUri;
+      try
+      {
+         RequestLifeCycle.begin(getContainer());
+
+         chain.doFilter(request, response);
+      }
+      finally
+      {
+         RequestLifeCycle.end();
+      }
    }
    
-   public String getGadgetUri()
+   /**
+    * @see javax.servlet.Filter#destroy()
+    */
+   public void destroy()
    {
-      return gadgetUri;
    }
-   
-   public void setConsumer(OAuthStoreConsumer consumer)
-   {
-      this.consumer = consumer;
-   }
-   
-   public OAuthStoreConsumer getConsumer()
-   {
-      return consumer;
-   }
+
 }

@@ -58,6 +58,11 @@
     <filter-class>org.apache.shindig.common.servlet.HostFilter</filter-class>
   </filter>
   
+  <filter>
+    <filter-name>OAuthStoreTransactionFilter</filter-name>
+    <filter-class>org.exoplatform.portal.gadget.core.OAuthStoreTransactionFilter</filter-class>
+  </filter>
+  
   <filter-mapping>
     <filter-name>hostFilter</filter-name>
     <url-pattern>/gadgets/ifr</url-pattern>
@@ -93,6 +98,11 @@
     <servlet-name>proxy</servlet-name>
   </filter-mapping>
 
+  <filter-mapping>
+    <filter-name>OAuthStoreTransactionFilter</filter-name>
+    <url-pattern>/gadgets/makeRequest</url-pattern>
+  </filter-mapping>
+  
   <listener>
     <!--<listener-class>org.apache.shindig.common.servlet.GuiceServletContextListener</listener-class>-->
      <listener-class>org.exoplatform.portal.gadget.core.GateInGuiceServletContextListener</listener-class>

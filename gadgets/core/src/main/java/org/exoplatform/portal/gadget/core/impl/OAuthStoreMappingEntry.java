@@ -33,9 +33,9 @@ public abstract class OAuthStoreMappingEntry
    
    public abstract void setGadgetUri(String gadgetUri);
    
-   @Property(name = "consumerName")
-   public abstract String getConsumerName();
+   @Property(name = "keyName")
+   public abstract String getKeyName();
    
-   public abstract void setConsumerName(String consumerName);
+   public abstract void setKeyName(String keyName);
 
 }

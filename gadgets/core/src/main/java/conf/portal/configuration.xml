@@ -43,7 +43,7 @@
          <init-params>
             <value-param>
                <name>domain-name</name>
-               <value>shindig</value>
+               <value>shindig:oauthstore</value>
             </value-param>
             <value-param>
                <name>workspace-name</name>
@@ -58,6 +58,5 @@
          </init-params>
       </component-plugin>
    </external-component-plugins>
-   
    
 </configuration>

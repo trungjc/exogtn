@@ -12,15 +12,10 @@ import org.apache.shindig.auth.SecurityToken;
 import org.apache.shindig.common.util.ResourceLoader;
 import org.apache.shindig.gadgets.GadgetException;
 import org.apache.shindig.gadgets.oauth.BasicOAuthStore;
-import org.apache.shindig.gadgets.oauth.BasicOAuthStoreConsumerKeyAndSecret;
 import org.apache.shindig.gadgets.oauth.BasicOAuthStoreTokenIndex;
-import org.apache.shindig.gadgets.oauth.OAuthModule;
 import org.apache.shindig.gadgets.oauth.OAuthStore;
-import org.apache.shindig.gadgets.oauth.BasicOAuthStoreConsumerKeyAndSecret.KeyType;
-import org.apache.shindig.gadgets.oauth.OAuthStore.ConsumerInfo;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.PortalContainer;
-import org.exoplatform.portal.gadget.core.impl.OAuthStoreConsumer;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
@@ -45,8 +40,14 @@ public class ExoOAuthStore implements OAuthStore
    
    private OAuthStoreConsumerService dataService;
 
+   /**
+    * Default key file to use when no key is set in gadget
+    */
    private String defaultKeyFile;
    
+   /**
+    * Name of default key to use when no key is set in gadget
+    */
    private String defaultKeyName;
    
    /**
@@ -63,11 +64,15 @@ public class ExoOAuthStore implements OAuthStore
    /** Number of times we removed an access token */
    private int accessTokenRemoveCount = 0;
 
-   public ExoOAuthStore()
+   public ExoOAuthStore(String signingKeyFile, String signingKeyName, String defaultCalbackUrl)
    {
+      this.defaultKeyFile = signingKeyFile;
+      this.defaultKeyName = signingKeyName;
+      this.defaultCallbackUrl = defaultCalbackUrl;
       dataService =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(
             OAuthStoreConsumerService.class);
+      loadDefaultKey();
    }
 
    public void setDefaultCallbackUrl(String defaultCallbackUrl)
@@ -88,7 +93,7 @@ public class ExoOAuthStore implements OAuthStore
    public ConsumerInfo getConsumerKeyAndSecret(SecurityToken securityToken, String serviceName,
       OAuthServiceProvider provider) throws GadgetException
    {
-      OAuthStoreConsumer consumer = dataService.findMappingConsumerAndGadget(serviceName, securityToken.getAppUrl());
+      OAuthStoreConsumer consumer = dataService.findMappingKeyAndGadget(serviceName, securityToken.getAppUrl());
       if (consumer == null)
       {
          consumer = dataService.getDefaultConsumer();
@@ -98,7 +103,7 @@ public class ExoOAuthStore implements OAuthStore
          throw new GadgetException(GadgetException.Code.INTERNAL_SERVER_ERROR,
             "No key for gadget " + securityToken.getAppUrl() + " and service " + serviceName);
       }
-      return toConsumerInfo(consumer);
+      return toConsumerInfo(consumer, provider);
    }
 
    public TokenInfo getTokenInfo(SecurityToken securityToken, ConsumerInfo consumerInfo, String serviceName,
@@ -180,8 +185,7 @@ public class ExoOAuthStore implements OAuthStore
       }
       if (defaultKey != null)
       {
-         //TODO
-         //store.setDefaultKey(defaultKey);
+         dataService.storeDefaultConsumer(defaultKey);
       }
       else
       {
@@ -193,18 +197,18 @@ public class ExoOAuthStore implements OAuthStore
       }
    }
    
-   private final ConsumerInfo toConsumerInfo(OAuthStoreConsumer storeConsumer)
+   private final ConsumerInfo toConsumerInfo(OAuthStoreConsumer storeConsumer, OAuthServiceProvider provider)
    {
       OAuthConsumer consumer = null;
       if (storeConsumer.getKeyType().equals("RSA_PRIVATE")) {
-        consumer = new OAuthConsumer(null, storeConsumer.getConsumerKey(), null, null);
+        consumer = new OAuthConsumer(null, storeConsumer.getConsumerKey(), null, provider);
         consumer.setProperty(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.RSA_SHA1);
         consumer.setProperty(RSA_SHA1.PRIVATE_KEY, storeConsumer.getConsumerSecret());
       } else {
-        consumer = new OAuthConsumer(null, storeConsumer.getConsumerKey(), storeConsumer.getConsumerSecret(), null);
+        consumer = new OAuthConsumer(null, storeConsumer.getConsumerKey(), storeConsumer.getConsumerSecret(), provider);
         consumer.setProperty(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.HMAC_SHA1);
       }
       String callback = (storeConsumer.getCallbackUrl() != null ? storeConsumer.getCallbackUrl() : defaultCallbackUrl);
-      return new ConsumerInfo(consumer, storeConsumer.getConsumerName(), callback);
+      return new ConsumerInfo(consumer, storeConsumer.getKeyName(), callback);
    }
 }

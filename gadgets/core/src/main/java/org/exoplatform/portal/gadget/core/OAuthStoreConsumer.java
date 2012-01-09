@@ -16,7 +16,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.portal.gadget.core.impl;
+package org.exoplatform.portal.gadget.core;
 
 /**
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
@@ -24,7 +24,7 @@ package org.exoplatform.portal.gadget.core.impl;
  */
 public class OAuthStoreConsumer
 {
-   private String consumerName;
+   private String keyName;
 
    private String consumerKey;
 
@@ -34,23 +34,23 @@ public class OAuthStoreConsumer
 
    private String callbackUrl;//Can be null
 
-   public OAuthStoreConsumer(String consumerName, String consumerKey, String consumerSecret, String keyType, String callbackUrl)
+   public OAuthStoreConsumer(String keyName, String consumerKey, String consumerSecret, String keyType, String callbackUrl)
    {
-      this.consumerName = consumerName;
+      this.keyName = keyName;
       this.consumerKey = consumerKey;
       this.consumerSecret = consumerSecret;
       this.keyType = keyType;
       this.callbackUrl = callbackUrl;
    }
    
-   public void setConsumerName(String consumerName)
+   public void setKeyName(String keyName)
    {
-      this.consumerName = consumerName;
+      this.keyName = keyName;
    }
 
-   public String getConsumerName()
+   public String getKeyName()
    {
-      return consumerName;
+      return keyName;
    }
 
    public void setConsumerKey(String consumerKey)
