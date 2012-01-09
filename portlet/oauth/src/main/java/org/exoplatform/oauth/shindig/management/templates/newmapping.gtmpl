@@ -1,0 +1,34 @@
+#{decorate path=navigation.gtmpl/}
+#{param name=allConsumers/}
+#{param name=message/}
+
+<div class="AddEntry">
+	<form action="@{UIShindigOAuth.submitNewMapping()}" method="post">
+		<div><h2>Add OAuth Store Consumer</h2></div>
+
+		<% if (message != null) { %>
+			<div class="OMessage">${message}</div>
+		<% } %>
+
+		<table align="center">
+		    <tr>
+				<td>Gadget Uri</td>
+				<td><input type="text" name="gadgetUri" value="" />*</td>
+			</tr>
+
+			<tr>
+				<td>Key Name</td>
+				<td><select name="keyName">
+				<% if (allConsumers != null)
+					  for ( def consumer : allConsumers) {					  
+				%>
+					 <option value="${consumer.keyName}">${consumer.keyName}</option>  
+			    <% } %>   
+			      </select></td>
+			</tr>
+		</table>
+
+		<input type="submit" value="Add" class="OSubmit" />
+		<br />
+	</form>
+</div>

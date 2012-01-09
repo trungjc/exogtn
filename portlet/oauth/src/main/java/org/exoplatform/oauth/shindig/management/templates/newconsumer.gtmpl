@@ -3,24 +3,17 @@
 #{param name=message/}
 
 <div class="AddEntry">
-	<form action="@{UIShindigOAuth.submitNewEntry()}" method="post">
-		<div><h2>Add OAuth Store Consumer</h2></div>
+	<form action="@{UIShindigOAuth.submitNewConsumer()}" method="post">
+		<div><h2>Add OAuth Consumer key</h2></div>
 
 		<% if (message != null) { %>
 			<div class="OMessage">${message}</div>
 		<% } %>
 
 		<table align="center">
-		    <tr>
-				<td>Gadget Uri</td>
-				<td><input type="text" name="gadgetUri" value="" />*</td>
-			</tr>
 			<tr>
 				<td>Key Name</td>
 				<td><input type="text" name="keyName" value="" />*</td>
-			</tr>
-			<tr><td>-----------------------------------------------------</td>
-				<td>------------------------</td>
 			</tr>
 			<tr>
 				<td>Consumer key</td>

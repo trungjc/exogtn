@@ -31,6 +31,7 @@ import org.juzu.View;
 import org.w3c.dom.Element;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -52,8 +53,12 @@ public class UIShindigOAuth
    org.exoplatform.oauth.shindig.management.templates.oauthlist oauthList;
    
    @Inject
-   @Path("newentry.gtmpl")
-   org.exoplatform.oauth.shindig.management.templates.newentry newEntry;
+   @Path("newconsumer.gtmpl")
+   org.exoplatform.oauth.shindig.management.templates.newconsumer newConsumer;
+   
+   @Inject
+   @Path("newmapping.gtmpl")
+   org.exoplatform.oauth.shindig.management.templates.newmapping newMapping;
    
    @Inject
    StoreEntry storeEntry;
@@ -66,14 +71,23 @@ public class UIShindigOAuth
    {
       OAuthStoreConsumerService store =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
-      Map<String, OAuthStoreConsumer> allConsumers = store.getAllMappingKeyAndGadget();
-      oauthList.allConsumers(allConsumers).render();
+      Map<String, OAuthStoreConsumer> allMappings = store.getAllMappingKeyAndGadget();
+      oauthList.allMappings(allMappings).render();
    }
    
    @View
-   public void addNewEntry()
+   public void addNewConsumer()
    {
-      newEntry.storeEntry(storeEntry).message(message).render();
+      newConsumer.storeEntry(storeEntry).message(message).render();
+   }
+   
+   @View
+   public void addNewMapping()
+   {
+      OAuthStoreConsumerService store =
+         (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
+      List<OAuthStoreConsumer> allConsumers = store.getAllConsumers();
+      newMapping.allConsumers(allConsumers).render();
    }
    
    @Action
@@ -86,19 +100,25 @@ public class UIShindigOAuth
    }
    
    @Action
-   public Response showAddNewEntry()
+   public Response showAddNewConsumer()
    {
-      return UIShindigOAuth_.addNewEntry();
+      return UIShindigOAuth_.addNewConsumer();
    }
    
    @Action
-   public Response submitNewEntry(String gadgetUri, String keyName, String consumerKey, String consumerSecret, String keyType)
+   public Response showAddNewMapping()
    {
-      if (gadgetUri == "" || keyName == "" || consumerKey == "" || consumerSecret == "" || keyType == "")
+      return UIShindigOAuth_.addNewMapping();
+   }
+   
+   @Action
+   public Response submitNewConsumer(String keyName, String consumerKey, String consumerSecret, String keyType)
+   {
+      if (keyName == "" || consumerKey == "" || consumerSecret == "" || keyType == "")
       {
          message = "You must fill all fields";
          storeEntry = null;
-         return UIShindigOAuth_.addNewEntry();
+         return UIShindigOAuth_.addNewConsumer();
       }
 
       if (keyType.equals("RSA_PRIVATE")) {
@@ -118,6 +138,31 @@ public class UIShindigOAuth
          e.printStackTrace();
       }
       
+      return UIShindigOAuth_.index();
+   }
+   
+   @Action
+   public Response submitNewMapping(String gadgetUri, String keyName)
+   {
+      if (gadgetUri == "" || keyName == "")
+      {
+         message = "Gadget Uri is not null";
+         return UIShindigOAuth_.addNewMapping();
+      }
+      
+      //TODO: check if mapping is added before, show message
+      
+      OAuthStoreConsumerService store =
+         (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
+      try
+      {
+         store.addMappingKeyAndGadget(keyName, gadgetUri);
+      }
+      catch (Exception e)
+      {
+         //should log this
+         e.printStackTrace();
+      }
       return UIShindigOAuth_.index();
    }
 }

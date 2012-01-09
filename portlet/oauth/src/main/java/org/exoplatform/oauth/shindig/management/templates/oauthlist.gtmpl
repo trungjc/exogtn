@@ -1,10 +1,10 @@
-#{param name=allConsumers/}
+#{param name=allMappings/}
 
 <div class="OAuthConsumer">
 	<div><h1>
-	Shindig OAuth Store: Manage configuration mappings of gadget and OAuth Consumer key</h1></div>
+	Shindig OAuth Store: Manage mappings of gadget and OAuth key</h1></div>
 	<div>
-	<% if(allConsumers != null) { %>
+	<% if(allMappings != null) { %>
 		<table border="1">
 			<tr bgcolor="#99CCFF">
 				<td valign="top"><b>Gadget Uri</b></td>
@@ -14,16 +14,16 @@
 				<td valign="top"><b>Key Type</b></td>
 				<td valign="top"><b>Action</b></td>
 			</tr>
-			 <% allConsumers.each { key, entry -> %>
+			 <% allMappings.each { gadgetUri, consumer -> %>
 				<tr>
-					<td>${key}</td>
-					<td>${entry.keyName}</td>
-					<td>${entry.consumerKey}</td>
-					<td>${entry.consumerSecret}</td>
-					<td>${entry.keyType}</td>
+					<td>${gadgetUri}</td>
+					<td>${consumer.keyName}</td>
+					<td>${consumer.consumerKey}</td>
+					<td>${consumer.consumerSecret}</td>
+					<td>${consumer.keyType}</td>
 					<td>
 					    <p>
-					    	<a href="@{UIShindigOAuth.deleteEntry(keyName = entry.keyName, gadgetUri = key)}" title="Delete this entry">Delete</a>
+					    	<a href="@{UIShindigOAuth.deleteEntry(keyName = consumer.keyName, gadgetUri = gadgetUri)}" title="Delete this entry">Delete</a>
     					</p>
 					</td>
 				</tr>
@@ -32,7 +32,8 @@
 	<% } %>
 	<br />
 	    <p>
-    		<a class="OSummit" href="@{UIShindigOAuth.showAddNewEntry()}">Add a new entry</a>
+    		<a class="OSummit" href="@{UIShindigOAuth.showAddNewConsumer()}">Add Consumer</a>
+    		<a class="OSummit" href="@{UIShindigOAuth.showAddNewMapping()}">Map Gadget and Consumer</a>
 		</p>
 	</div>
 </div>
