@@ -3,7 +3,7 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
   
-  <bean id="oauthStoreEntry" class="org.exoplatform.oauth.shindig.management.OAuthStoreEntry" scope="session">
+  <bean id="storeEntry" class="org.exoplatform.oauth.shindig.management.StoreEntry" scope="session">
   </bean>
   
   <bean id="message" class="java.lang.String" scope="session">

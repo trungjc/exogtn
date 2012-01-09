@@ -54,10 +54,6 @@ public class ExoOAuthModule extends OAuthModule
    private static final String SIGNING_KEY_NAME = "gadgets.signingKeyName";
 
    private static final String CALLBACK_URL = "gadgets.signing.global-callback-url";
-   
-   private static final String OAUTH_CONFIG = "config/oauth.json";
-   
-   private static final Log log = ExoLogger.getLogger(OAuthModule.class);;
 
    @Override
    protected void configure()
@@ -86,38 +82,9 @@ public class ExoOAuthModule extends OAuthModule
       {
          store = new ExoOAuthStore();
          
-         String signingKeyFile = config.getString(ContainerConfig.DEFAULT_CONTAINER, SIGNING_KEY_FILE);
-         String signingKeyName = config.getString(ContainerConfig.DEFAULT_CONTAINER, SIGNING_KEY_NAME);
-         loadDefaultKey(signingKeyFile, signingKeyName);
-         
-         String defaultCallbackUrl = config.getString(ContainerConfig.DEFAULT_CONTAINER,CALLBACK_URL);
-         store.setDefaultCallbackUrl(defaultCallbackUrl);
-      }
-
-      private void loadDefaultKey(String signingKeyFile, String signingKeyName) {
-        BasicOAuthStoreConsumerKeyAndSecret key = null;
-        if (!StringUtils.isBlank(signingKeyFile)) {
-          try {
-            log.info("Loading OAuth signing key from " + signingKeyFile);
-            String privateKey = IOUtils.toString(ResourceLoader.open(signingKeyFile), "UTF-8");
-            privateKey = BasicOAuthStore.convertFromOpenSsl(privateKey);
-            key = new BasicOAuthStoreConsumerKeyAndSecret(null, privateKey, KeyType.RSA_PRIVATE,
-                signingKeyName, null);
-          } catch (Throwable t) {
-            log.warn("Couldn't load key file " + signingKeyFile);
-          }
-        }
-        if (key != null) {
-          store.setDefaultKey(key);
-        } else {
-          log.warn("Couldn't load OAuth signing key.  To create a key, run:\n" +
-              "  openssl req -newkey rsa:1024 -days 365 -nodes -x509 -keyout testkey.pem \\\n" +
-              "     -out testkey.pem -subj '/CN=mytestkey'\n" +
-              "  openssl pkcs8 -in testkey.pem -out oauthkey.pem -topk8 -nocrypt -outform PEM\n" +
-              '\n' +
-              "Then edit gadgets.properties and add these lines:\n" +
-              SIGNING_KEY_FILE + "=<path-to-oauthkey.pem>\n");
-        }
+         store.setDetaultKeyFile(config.getString(ContainerConfig.DEFAULT_CONTAINER, SIGNING_KEY_FILE));
+         store.setDetaultKeyName(config.getString(ContainerConfig.DEFAULT_CONTAINER, SIGNING_KEY_NAME));         
+         store.setDefaultCallbackUrl(config.getString(ContainerConfig.DEFAULT_CONTAINER,CALLBACK_URL));
       }
 
       public OAuthStore get() {

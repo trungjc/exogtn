@@ -2,6 +2,9 @@ package org.exoplatform.portal.gadget.core;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.shindig.common.servlet.GuiceServletContextListener;
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.PortalContainer;
+import org.exoplatform.container.component.RequestLifeCycle;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -50,6 +53,9 @@ public class GateInGuiceServletContextListener extends GuiceServletContextListen
 
     try
     {
+       ExoContainer container = PortalContainer.getInstance();
+       RequestLifeCycle.begin(container);
+       
       //Setup the Guice objects, the threadlocal loader is accessible for the moment
       super.contextInitialized(event);
     }
@@ -61,6 +67,7 @@ public class GateInGuiceServletContextListener extends GuiceServletContextListen
     {
       //Reset the threadlocal loader to null
       currentLoader.set(null);
+      RequestLifeCycle.end();
     }
 
   }

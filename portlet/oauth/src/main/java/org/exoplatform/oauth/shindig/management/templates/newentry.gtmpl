@@ -1,7 +1,6 @@
 #{decorate path=navigation.gtmpl/}
-#{param name=oauthStoreEntry/}
+#{param name=storeEntry/}
 #{param name=message/}
-
 
 <div class="AddEntry">
 	<form action="@{UIShindigOAuth.submitNewEntry()}" method="post">
@@ -18,7 +17,7 @@
 			</tr>
 			<tr>
 				<td>Service Name</td>
-				<td><input type="text" name="serviceName" value="" />*</td>
+				<td><input type="text" name="consumerName" value="" />*</td>
 			</tr>
 			<tr><td>-----------------------------------------------------</td>
 				<td>------------------------</td>

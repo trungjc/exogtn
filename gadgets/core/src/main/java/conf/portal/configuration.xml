@@ -24,14 +24,40 @@
    xmlns="http://www.exoplaform.org/xml/ns/kernel_1_2.xsd">
 
    <component>
-      <key>org.exoplatform.portal.gadget.core.ExoOAuthDataService</key>
-      <type>org.exoplatform.portal.gadget.core.ExoOAuthDataService</type>
+      <key>org.exoplatform.portal.gadget.core.OAuthStoreConsumerService</key>
+      <type>org.exoplatform.portal.gadget.core.impl.OAuthStoreConsumerServiceImpl</type>
       <init-params>
          <value-param>
-           <name>oauth.config</name>
-           <value>config/oauth.json</value>
+            <name>oauth.config</name>
+            <value>config/oauth.json</value>
          </value-param>
       </init-params>
    </component>
 
+   <external-component-plugins>
+      <target-component>org.exoplatform.commons.chromattic.ChromatticManager</target-component>
+      <component-plugin>
+         <name>chromattic</name>
+         <set-method>addLifeCycle</set-method>
+         <type>org.exoplatform.commons.chromattic.ChromatticLifeCycle</type>
+         <init-params>
+            <value-param>
+               <name>domain-name</name>
+               <value>shindig</value>
+            </value-param>
+            <value-param>
+               <name>workspace-name</name>
+               <value>portal-work</value>
+            </value-param>
+            <values-param>
+               <name>entities</name>
+               <value>org.exoplatform.portal.gadget.core.impl.OAuthStoreContainer</value>
+               <value>org.exoplatform.portal.gadget.core.impl.OAuthStoreConsumerEntry</value>
+               <value>org.exoplatform.portal.gadget.core.impl.OAuthStoreMappingEntry</value>
+            </values-param>
+         </init-params>
+      </component-plugin>
+   </external-component-plugins>
+   
+   
 </configuration>

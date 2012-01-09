@@ -19,13 +19,11 @@
 
 package org.exoplatform.oauth.shindig.management;
 
-import org.apache.shindig.gadgets.oauth.BasicOAuthStoreConsumerIndex;
-import org.apache.shindig.gadgets.oauth.BasicOAuthStoreConsumerKeyAndSecret;
-import org.apache.shindig.gadgets.oauth.BasicOAuthStoreConsumerKeyAndSecret.KeyType;
 import org.apache.shindig.protocol.DataServiceServlet;
 import org.exoplatform.container.PortalContainer;
-import org.exoplatform.portal.gadget.core.ExoOAuthDataService;
+import org.exoplatform.portal.gadget.core.OAuthStoreConsumerService;
 import org.exoplatform.portal.gadget.core.ExoOAuthStore;
+import org.exoplatform.portal.gadget.core.impl.OAuthStoreConsumer;
 import org.juzu.Action;
 import org.juzu.Path;
 import org.juzu.Response;
@@ -58,7 +56,7 @@ public class UIShindigOAuth
    org.exoplatform.oauth.shindig.management.templates.newentry newEntry;
    
    @Inject
-   OAuthStoreEntry oauthStoreEntry;
+   StoreEntry storeEntry;
    
    @Inject
    String message;
@@ -66,25 +64,24 @@ public class UIShindigOAuth
    @View
    public void index()
    {
-      ExoOAuthDataService dataService =
-         (ExoOAuthDataService)PortalContainer.getInstance().getComponentInstanceOfType(ExoOAuthDataService.class);
-      Map<BasicOAuthStoreConsumerIndex, BasicOAuthStoreConsumerKeyAndSecret> allOSConsumers =
-         dataService.getAllOAuthStoreConsumers();
-      oauthList.allOSConsumers(allOSConsumers).render();
+      OAuthStoreConsumerService store =
+         (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
+      Map<String, OAuthStoreConsumer> allConsumers = store.getAllMappingConsumerAndGadget();
+      oauthList.allConsumers(allConsumers).render();
    }
    
    @View
    public void addNewEntry()
    {
-      newEntry.oauthStoreEntry(oauthStoreEntry).message(message).render();
+      newEntry.storeEntry(storeEntry).message(message).render();
    }
    
    @Action
-   public Response deleteEntry(String gadgetUri, String serviceName)
+   public Response deleteEntry(String consumerName, String gadgetUri)
    {
-      ExoOAuthDataService dataService =
-         (ExoOAuthDataService)PortalContainer.getInstance().getComponentInstanceOfType(ExoOAuthDataService.class);
-      dataService.removeOAuthStoreConsumer(gadgetUri, serviceName);
+      OAuthStoreConsumerService dataService =
+         (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
+      dataService.removeMappingConsumerAndGadget(consumerName, gadgetUri);
       return UIShindigOAuth_.index();
    }
    
@@ -95,30 +92,23 @@ public class UIShindigOAuth
    }
    
    @Action
-   public Response submitNewEntry(String gadgetUri, String serviceName, String consumerKey, String consumerSecret, String keyType)
+   public Response submitNewEntry(String gadgetUri, String consumerName, String consumerKey, String consumerSecret, String keyType)
    {
-      if (gadgetUri == "" || serviceName == "" || consumerKey == "" || consumerSecret == "" || keyType == "")
+      if (gadgetUri == "" || consumerName == "" || consumerKey == "" || consumerSecret == "" || keyType == "")
       {
          message = "You must fill all fields";
-         oauthStoreEntry = null;
+         storeEntry = null;
          return UIShindigOAuth_.addNewEntry();
       }
-      BasicOAuthStoreConsumerIndex key = new BasicOAuthStoreConsumerIndex();
-      key.setGadgetUri(gadgetUri);
-      key.setServiceName(serviceName);
 
-      KeyType type = KeyType.HMAC_SYMMETRIC;
       if (keyType.equals("RSA_PRIVATE")) {
-        type = KeyType.RSA_PRIVATE;
         consumerSecret.replaceAll("-----[A-Z ]*-----", "").replace("\n", "");
       }
       
-      BasicOAuthStoreConsumerKeyAndSecret value =
-         new BasicOAuthStoreConsumerKeyAndSecret(consumerKey, consumerSecret, type, null, null);
-
-      ExoOAuthDataService dataService =
-         (ExoOAuthDataService)PortalContainer.getInstance().getComponentInstanceOfType(ExoOAuthDataService.class);
-      dataService.addOAuthStoreConsumer(key, value);
+      OAuthStoreConsumerService dataService =
+         (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
+      OAuthStoreConsumer consumer = new OAuthStoreConsumer(consumerName, consumerKey, consumerSecret, keyType, null);
+      dataService.storeConsumer(consumer);
       
       return UIShindigOAuth_.index();
    }

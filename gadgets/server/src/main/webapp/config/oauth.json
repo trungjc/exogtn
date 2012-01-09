@@ -19,7 +19,7 @@
 
 {
   "http://localhost:8080/gadgets/files/samplecontainer/examples/oauth.xml" : {
-    "" : {
+    "basic-oauth" : {
       "consumer_key" : "gadgetConsumer",
       "consumer_secret" : "gadgetSecret",
       "key_type" : "HMAC_SYMMETRIC"

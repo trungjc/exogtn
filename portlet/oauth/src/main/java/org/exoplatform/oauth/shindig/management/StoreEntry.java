@@ -18,8 +18,8 @@
  */
 package org.exoplatform.oauth.shindig.management;
 
-import org.apache.shindig.gadgets.oauth.BasicOAuthStoreConsumerIndex;
-import org.apache.shindig.gadgets.oauth.BasicOAuthStoreConsumerKeyAndSecret;
+import org.apache.shindig.gadgets.oauth.OAuthStore.ConsumerInfo;
+import org.exoplatform.portal.gadget.core.impl.OAuthStoreConsumer;
 import org.juzu.SessionScoped;
 
 import java.io.Serializable;
@@ -30,28 +30,31 @@ import javax.inject.Named;
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
  * @version $Revision$
  */
-@Named("OAuthStoreEntry")
+@Named("StoreEntry")
 @SessionScoped
-public class OAuthStoreEntry implements Serializable
+public class StoreEntry implements Serializable
 {
    private static final long serialVersionUID = 1L;
-   private BasicOAuthStoreConsumerIndex key;
-   private BasicOAuthStoreConsumerKeyAndSecret value;
+   private String gadgetUri;
+   private OAuthStoreConsumer consumer;
    
-   public void setKey(BasicOAuthStoreConsumerIndex key)
+   public void setGadgetUri(String gadgetUri)
    {
-      this.key = key;
+      this.gadgetUri = gadgetUri;
    }
-   public BasicOAuthStoreConsumerIndex getKey()
+   
+   public String getGadgetUri()
    {
-      return key;
+      return gadgetUri;
    }
-   public void setValue(BasicOAuthStoreConsumerKeyAndSecret value)
+   
+   public void setConsumer(OAuthStoreConsumer consumer)
    {
-      this.value = value;
+      this.consumer = consumer;
    }
-   public BasicOAuthStoreConsumerKeyAndSecret getValue()
+   
+   public OAuthStoreConsumer getConsumer()
    {
-      return value;
+      return consumer;
    }
 }
