@@ -18,7 +18,6 @@
  */
 package org.exoplatform.oauth.shindig.management;
 
-import org.apache.shindig.gadgets.oauth.OAuthStore.ConsumerInfo;
 import org.exoplatform.portal.gadget.core.OAuthStoreConsumer;
 import org.juzu.SessionScoped;
 
@@ -30,9 +29,9 @@ import javax.inject.Named;
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
  * @version $Revision$
  */
-@Named("StoreEntry")
+@Named("Session")
 @SessionScoped
-public class StoreEntry implements Serializable
+public class Session implements Serializable
 {
    private static final long serialVersionUID = 1L;
    private String gadgetUri;

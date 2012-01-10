@@ -1,0 +1,47 @@
+#{decorate path=navigation.gtmpl/}
+#{param name=consumer/}
+
+<div class="OAuthConsumer">
+	<div><h2>
+	Shindig OAuth Store: Manage mappings of consumer</h2></div>
+	<div>
+	<% if(consumer != null) { %>
+		<table>
+			<tr><td valign="top"><b>Key Name: </b></td>
+				<td>${consumer.keyName}</td>	
+			</tr>
+			<tr><td valign="top"><b>Consumer Key: </b></td>
+				<td>${consumer.consumerKey}</td>
+			</tr>
+			<tr><td valign="top"><b>Consumer Secret: </b></td>
+				<td>${consumer.consumerSecret}</td>
+			</tr>
+			<tr><td valign="top"><b>Key Type: </b></td>
+				<td>${consumer.keyType}</td>
+			</tr>
+		</table>
+		
+		<div><h3>List of gadget Uri mappings to this consumer</h3></div>
+		
+		<table border="1">
+			<tr bgcolor="#99CCFF">
+				<td valign="top"><b>Gadget Uri</b></td>
+				<td valign="top"><b>Action</b></td>
+			</tr>
+			 <% for (def uri : consumer.gadgetUris) {%>
+				<tr>
+					<td>				
+						<div>${uri}\n</div>					
+					</td>
+					<td>
+					    <p>
+					    	<a href="@{UIShindigOAuth.deleteMapping(keyName = consumer.keyName, gadgetUri = uri)}" title="Delete this mapping">Delete</a>
+    					</p>
+					</td>
+				</tr>
+			<% } %>
+		</table>
+	<% } %>
+	<br />
+	</div>
+</div>

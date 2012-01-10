@@ -28,6 +28,8 @@ import org.juzu.Action;
 import org.juzu.Path;
 import org.juzu.Response;
 import org.juzu.View;
+import org.juzu.impl.compiler.BaseProcessor;
+import org.juzu.impl.utils.Logger;
 import org.w3c.dom.Element;
 
 import java.io.IOException;
@@ -48,6 +50,8 @@ import javax.portlet.RenderResponse;
  */
 public class UIShindigOAuth
 {
+   private final Logger log = BaseProcessor.getLogger(UIShindigOAuth.class);
+   
    @Inject
    @Path("oauthlist.gtmpl")
    org.exoplatform.oauth.shindig.management.templates.oauthlist oauthList;
@@ -61,7 +65,11 @@ public class UIShindigOAuth
    org.exoplatform.oauth.shindig.management.templates.newmapping newMapping;
    
    @Inject
-   StoreEntry storeEntry;
+   @Path("consumerdetail.gtmpl")
+   org.exoplatform.oauth.shindig.management.templates.consumerdetail consumerDetail;
+   
+   @Inject
+   Session session;
    
    @Inject
    String message;
@@ -71,18 +79,18 @@ public class UIShindigOAuth
    {
       OAuthStoreConsumerService store =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
-      Map<String, OAuthStoreConsumer> allMappings = store.getAllMappingKeyAndGadget();
-      oauthList.allMappings(allMappings).render();
+      List<OAuthStoreConsumer> allConsumers = store.getAllConsumers();
+      oauthList.allConsumers(allConsumers).render();
    }
    
    @View
    public void addNewConsumer()
    {
-      newConsumer.storeEntry(storeEntry).message(message).render();
+      newConsumer.session(session).message(message).render();
    }
    
    @View
-   public void addNewMapping()
+   public void addMapping()
    {
       OAuthStoreConsumerService store =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
@@ -90,12 +98,18 @@ public class UIShindigOAuth
       newMapping.allConsumers(allConsumers).render();
    }
    
+   @View
+   public void consumerDetail()
+   {
+      consumerDetail.consumer(session.getConsumer()).render();
+   }
+   
    @Action
-   public Response deleteEntry(String keyName, String gadgetUri)
+   public Response deleteConsumer(String keyName)
    {
       OAuthStoreConsumerService dataService =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
-      dataService.removeMappingKeyAndGadget(keyName, gadgetUri);
+      dataService.removeConsumer(keyName);
       return UIShindigOAuth_.index();
    }
    
@@ -106,9 +120,28 @@ public class UIShindigOAuth
    }
    
    @Action
-   public Response showAddNewMapping()
+   public Response showAddMapping()
    {
-      return UIShindigOAuth_.addNewMapping();
+      return UIShindigOAuth_.addMapping();
+   }
+   
+   @Action
+   public Response showConsumerDetail(String keyName)
+   {
+      OAuthStoreConsumerService dataService =
+         (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
+      session.setConsumer(dataService.getConsumer(keyName));
+      return UIShindigOAuth_.consumerDetail();
+   }
+   
+   @Action
+   public Response deleteMapping(String keyName, String gadgetUri)
+   {
+      OAuthStoreConsumerService dataService =
+         (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
+      dataService.removeMappingKeyAndGadget(keyName, gadgetUri);
+      session.setConsumer(dataService.getConsumer(keyName));
+      return UIShindigOAuth_.consumerDetail();
    }
    
    @Action
@@ -117,7 +150,7 @@ public class UIShindigOAuth
       if (keyName == "" || consumerKey == "" || consumerSecret == "" || keyType == "")
       {
          message = "You must fill all fields";
-         storeEntry = null;
+         session = null;
          return UIShindigOAuth_.addNewConsumer();
       }
 
@@ -134,8 +167,7 @@ public class UIShindigOAuth
       }
       catch (Exception e)
       {
-         //should log this
-         e.printStackTrace();
+         log.log("Can not store consumer with key name: " + consumer.getKeyName() + e.getMessage());
       }
       
       return UIShindigOAuth_.index();
@@ -147,7 +179,7 @@ public class UIShindigOAuth
       if (gadgetUri == "" || keyName == "")
       {
          message = "Gadget Uri is not null";
-         return UIShindigOAuth_.addNewMapping();
+         return UIShindigOAuth_.addMapping();
       }
       
       //TODO: check if mapping is added before, show message
@@ -160,8 +192,7 @@ public class UIShindigOAuth
       }
       catch (Exception e)
       {
-         //should log this
-         e.printStackTrace();
+         log.log("Can not add map key:" + keyName + " and gadget uri:" + gadgetUri + e.getMessage());
       }
       return UIShindigOAuth_.index();
    }

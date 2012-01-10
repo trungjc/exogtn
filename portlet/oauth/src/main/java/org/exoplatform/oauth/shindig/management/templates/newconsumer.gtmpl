@@ -1,5 +1,5 @@
 #{decorate path=navigation.gtmpl/}
-#{param name=storeEntry/}
+#{param name=session/}
 #{param name=message/}
 
 <div class="AddEntry">
