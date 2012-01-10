@@ -18,21 +18,25 @@
  */
 package org.exoplatform.portal.gadget.core;
 
+import java.util.List;
+
 /**
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
  * @version $Revision$
  */
 public class OAuthStoreConsumer
 {
-   private String keyName;
+   private String keyName;//represent as identifier of consumer
 
    private String consumerKey;
 
    private String consumerSecret;
 
-   private String keyType;
+   private String keyType;//Only HMAC_SYMMETRIC and RSA_PRIVATE
 
    private String callbackUrl;//Can be null
+   
+   private List<String> gadgetUris;
 
    public OAuthStoreConsumer(String keyName, String consumerKey, String consumerSecret, String keyType, String callbackUrl)
    {
@@ -41,6 +45,16 @@ public class OAuthStoreConsumer
       this.consumerSecret = consumerSecret;
       this.keyType = keyType;
       this.callbackUrl = callbackUrl;
+   }
+   
+   public OAuthStoreConsumer(String keyName, String consumerKey, String consumerSecret, String keyType, String callbackUrl, List<String> gadgetUris)
+   {
+      this.keyName = keyName;
+      this.consumerKey = consumerKey;
+      this.consumerSecret = consumerSecret;
+      this.keyType = keyType;
+      this.callbackUrl = callbackUrl;
+      this.gadgetUris = gadgetUris;
    }
    
    public void setKeyName(String keyName)
@@ -91,5 +105,15 @@ public class OAuthStoreConsumer
    public String getCallbackUrl()
    {
       return callbackUrl;
+   }
+
+   public void setGadgetUris(List<String> gadgetUris)
+   {
+      this.gadgetUris = gadgetUris;
+   }
+
+   public List<String> getGadgetUris()
+   {
+      return gadgetUris;
    }
 }

@@ -16,38 +16,43 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.portal.gadget.core.impl;
-
-import org.chromattic.api.annotations.Create;
-import org.chromattic.api.annotations.OneToMany;
-import org.chromattic.api.annotations.PrimaryType;
-import org.chromattic.api.annotations.Property;
-
-import java.util.Map;
+package org.exoplatform.portal.gadget.core;
 
 /**
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
  * @version $Revision$
  */
-@PrimaryType(name = "ost:container")
-public abstract class OAuthStoreContainer
+public class OAuthStoreException extends RuntimeException
 {
-   @Property(name = "defaultKeyName")
-   public abstract String getDefaultKeyName();
-   
-   public abstract void setDefaultKeyName(String defaultKeyName);
-   
-   @Create
-   protected abstract OAuthStoreConsumerEntry createOAuthStoreEntry();
-   
-   @OneToMany
-   public abstract Map<String, OAuthStoreConsumerEntry> getAllOAuthStoreConsumerEntries();
-   
-   public void removeOAuthStoreConsumerEntry(String keyName)
+   /** . */
+   private final OAuthStoreError error;
+
+   public OAuthStoreException(OAuthStoreError error)
    {
-      if (keyName != null)
-      {
-         getAllOAuthStoreConsumerEntries().remove(keyName);
-      }
+      super(error.toString());
+      this.error = error;
+   }
+
+   public OAuthStoreException(OAuthStoreError error, String message)
+   {
+      super(message);
+      this.error = error;
+   }
+
+   public OAuthStoreException(OAuthStoreError error, String message, Throwable cause)
+   {
+      super(message, cause);
+      this.error = error;
+   }
+
+   public OAuthStoreException(OAuthStoreError error, Throwable cause)
+   {
+      super(cause);
+      this.error = error;
+   }
+
+   public OAuthStoreError getError()
+   {
+      return error;
    }
 }

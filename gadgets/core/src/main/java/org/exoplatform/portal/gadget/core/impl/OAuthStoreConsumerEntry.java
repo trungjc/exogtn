@@ -22,11 +22,14 @@ import org.chromattic.api.annotations.PrimaryType;
 import org.chromattic.api.annotations.Property;
 import org.exoplatform.portal.gadget.core.OAuthStoreConsumer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
  * @version $Revision$
  */
-@PrimaryType(name = "shindig:oauthconsumer")
+@PrimaryType(name = "ost:consumer")
 public abstract class OAuthStoreConsumerEntry
 {
    @Property(name = "keyName")
@@ -54,10 +57,36 @@ public abstract class OAuthStoreConsumerEntry
    
    public abstract void setCallbackUrl(String callbackUrl);
    
+   @Property(name = "gadgetUris")
+   public abstract List<String> getGadgetUris();
+   
+   public abstract void setGadgetUris(List<String> gadgetUris);
+   
+   public void addGadgetUri(String gadgetUri)
+   {
+      List<String> uris = getGadgetUris();
+      if (uris == null)
+      {
+         uris = new ArrayList<String>();
+      }
+      uris.add(gadgetUri);
+      setGadgetUris(uris);
+   }
+   
+   public void removeGadgetUri(String gadgetUri)
+   {
+      if (getGadgetUris() != null)
+      {
+         List<String> uris = getGadgetUris();
+         uris.remove(gadgetUri);
+         setGadgetUris(uris);
+      }
+   }
+   
    public OAuthStoreConsumer toOAuthStoreConsumer()
    {
       return new OAuthStoreConsumer(this.getKeyName(), this.getConsumerKey(), this.getConsumerSecret(), this
-         .getKeyType(), this.getCallbackUrl());
+         .getKeyType(), this.getCallbackUrl(), this.getGadgetUris());
    }
 
 }

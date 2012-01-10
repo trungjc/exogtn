@@ -60,26 +60,26 @@
       </resources>
    </build>
    <dependencies>
-     <dependency>
+      <dependency>
          <groupId>org.exoplatform.portal</groupId>
          <artifactId>exo.portal.component.common</artifactId>
-     </dependency>
-     <dependency>
+      </dependency>
+      <dependency>
          <groupId>org.exoplatform.portal</groupId>
          <artifactId>exo.portal.component.web.controller</artifactId>
-     </dependency>
-     <dependency>
+      </dependency>
+      <dependency>
          <groupId>org.exoplatform.portal</groupId>
          <artifactId>exo.portal.component.web.security</artifactId>
-     </dependency>
-     <dependency>
+      </dependency>
+      <dependency>
          <groupId>org.exoplatform.kernel</groupId>
          <artifactId>exo.kernel.container</artifactId>
-     </dependency>
-     <dependency>
-       <groupId>org.gatein.shindig</groupId>
-       <artifactId>shindig-gadgets</artifactId>
-     </dependency>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.shindig</groupId>
+         <artifactId>shindig-gadgets</artifactId>
+      </dependency>
       <dependency>
          <groupId>org.gatein.shindig</groupId>
          <artifactId>shindig-common</artifactId>
@@ -97,8 +97,36 @@
          <artifactId>chromattic.api</artifactId>
       </dependency>
       <dependency>
+         <groupId>org.exoplatform.kernel</groupId>
+         <artifactId>exo.kernel.container</artifactId>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.exoplatform.portal</groupId>
+         <artifactId>exo.portal.component.test.core</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.exoplatform.portal</groupId>
+         <artifactId>exo.portal.component.test.jcr</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.exoplatform.portal</groupId>
+         <artifactId>exo.portal.component.identity</artifactId>
+         <type>test-jar</type>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.exoplatform.portal</groupId>
+         <artifactId>exo.portal.component.portal</artifactId>
+         <type>test-jar</type>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
          <groupId>org.chromattic</groupId>
-         <artifactId>chromattic.spi</artifactId>
+         <artifactId>chromattic.core</artifactId>
+         <scope>test</scope>
       </dependency>
    </dependencies>
 </project>

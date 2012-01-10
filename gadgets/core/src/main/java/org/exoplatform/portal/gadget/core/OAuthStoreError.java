@@ -16,26 +16,14 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.portal.gadget.core.impl;
-
-import org.chromattic.api.annotations.PrimaryType;
-import org.chromattic.api.annotations.Property;
+package org.exoplatform.portal.gadget.core;
 
 /**
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
  * @version $Revision$
  */
-@PrimaryType(name = "shindig:oauthmapping")
-public abstract class OAuthStoreMappingEntry
-{   
-   @Property(name = "gadgetUri")
-   public abstract String getGadgetUri();
-   
-   public abstract void setGadgetUri(String gadgetUri);
-   
-   @Property(name = "keyName")
-   public abstract String getKeyName();
-   
-   public abstract void setKeyName(String keyName);
-
+public enum OAuthStoreError
+{
+   DUPLICATION_DATA,
+   NON_EXIST_RELATIONSHIP,
 }

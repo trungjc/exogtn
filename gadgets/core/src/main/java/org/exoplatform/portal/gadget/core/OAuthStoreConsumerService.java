@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Manage information of all consumer, configuration mappings between consumer and gadget uri. 
+ * This information will be used by Shindig or applications to authorize with OAuth provider
+ * 
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
  * @version $Revision$
  */
@@ -31,8 +34,10 @@ public interface OAuthStoreConsumerService
    /**
     * Set default consumer in system. A system has only one default consumer
     * @param consumer
+    * @throws OAuthStoreException when keyName is duplication to another consumer
+    * @see OAuthStoreError
     */
-   public void storeDefaultConsumer(OAuthStoreConsumer consumer);
+   public void storeDefaultConsumer(OAuthStoreConsumer consumer) throws OAuthStoreException;
    
    /**
     * Get default consumer in system. A system has only one default consumer
@@ -50,12 +55,14 @@ public interface OAuthStoreConsumerService
    /**
     * Store consumer into storage
     * @param consumer
-    *  @throws Exception when keyName is duplication to another consumer
+    * @throws OAuthStoreException when keyName is duplication to another consumer
+    *  @see OAuthStoreError
     */
-   public void storeConsumer(OAuthStoreConsumer consumer) throws Exception;
+   public void storeConsumer(OAuthStoreConsumer consumer) throws OAuthStoreException;
 
    /**
     * Remove consumer with name
+    * when consumer is removed, all configuration that mapped to this consumer will be removed
     * @param name
     */
    public void removeConsumer(String name);
@@ -67,20 +74,14 @@ public interface OAuthStoreConsumerService
    public List<OAuthStoreConsumer> getAllConsumers();
    
    /**
-    * Get all mapping consumer and gadget uri.
-    * Relationship of consumer and gadget uri is many to many
-    * @return list of consumer, map key is gadget uri
-    */
-   public Map<String, OAuthStoreConsumer> getAllMappingKeyAndGadget();
-   
-   /**
     * Add new mapping configuration of a consumer and gadget uri
     * Relationship of consumer and gadget uri is many to many
     * @param keyName name of an existing consumer
     * @param gadgetUri
-    * @throws Exception if keyName indicates non-existing consumer or gadgetUri is not URL format standard
+    * @throws OAuthStoreException if keyName indicates non-existing consumer or gadgetUri is not URL format standard
+    * @see OAuthStoreError
     */
-   public void addMappingKeyAndGadget(String keyName, String gadgetUri) throws Exception;
+   public void addMappingKeyAndGadget(String keyName, String gadgetUri) throws OAuthStoreException;
 
    /**
     * Find a mapping configuration of a consumer and gadget uri

@@ -28,16 +28,15 @@ import org.exoplatform.portal.gadget.core.GateInContainerConfigLoader;
 import org.exoplatform.portal.gadget.core.GateInGuiceServletContextListener;
 import org.exoplatform.portal.gadget.core.OAuthStoreConsumer;
 import org.exoplatform.portal.gadget.core.OAuthStoreConsumerService;
+import org.exoplatform.portal.gadget.core.OAuthStoreError;
+import org.exoplatform.portal.gadget.core.OAuthStoreException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -59,9 +58,9 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
 
    public OAuthStoreConsumerServiceImpl(InitParams params, ChromatticManager chromatticManager)
    {
-      chromatticLifeCycle = chromatticManager.getLifeCycle("shindig:oauthstore");
+      chromatticLifeCycle = chromatticManager.getLifeCycle("oauthstore");
 
-      ValueParam oauthConfig = params.getValueParam(OAUTH_CONFIG);
+      ValueParam oauthConfig = params != null ? params.getValueParam(OAUTH_CONFIG) : null;
       if (oauthConfig != null)
       {
          String oauthFile = oauthConfig.getValue();
@@ -133,13 +132,18 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
          consumerSecret = convertFromOpenSsl(consumerSecret);
       }
       
-      //store consumer
-      storeConsumer(new OAuthStoreConsumer(keyName, consumerKey, consumerSecret, keyType, callbackUrl));
-      
       try
       {
+         //store consumer
+         storeConsumer(new OAuthStoreConsumer(keyName, consumerKey, consumerSecret, keyType, callbackUrl));
+                  
          //store mapping of consumer and gadget uri
          addMappingKeyAndGadget(keyName, gadgetUri.toASCIIString());
+      }
+      catch (OAuthStoreException e)
+      {
+         //should log this
+         e.printStackTrace();
       }
       catch (Exception e)
       {
@@ -151,10 +155,10 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
    private final OAuthStoreContainer getOAuthStoreContainer()
    {
       ChromatticSession session = chromatticLifeCycle.getContext().getSession();
-      OAuthStoreContainer container = session.findByPath(OAuthStoreContainer.class, "shindig:oauthstore");
+      OAuthStoreContainer container = session.findByPath(OAuthStoreContainer.class, "oauthstore");
       if (container == null)
       {
-         container = session.insert(OAuthStoreContainer.class, "shindig:oauthstore");
+         container = session.insert(OAuthStoreContainer.class, "oauthstore");
       }
       return container;
    }
@@ -169,7 +173,7 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
       return privateKey.replaceAll("-----[A-Z ]*-----", "").replace("\n", "");
    }
    
-   public void storeDefaultConsumer(OAuthStoreConsumer consumer)
+   public void storeDefaultConsumer(OAuthStoreConsumer consumer) throws OAuthStoreException
    {
       storeConsumer(consumer);
       defaultKeyName = consumer.getKeyName();
@@ -196,8 +200,13 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
       return null;
    }
 
-   public void storeConsumer(OAuthStoreConsumer consumer)
+   public void storeConsumer(OAuthStoreConsumer consumer) throws OAuthStoreException
    {
+      if (getConsumer(consumer.getKeyName()) != null)
+      {
+         throw new OAuthStoreException(OAuthStoreError.DUPLICATION_DATA);
+      }
+      
       OAuthStoreContainer storeContainer = this.getOAuthStoreContainer();
       OAuthStoreConsumerEntry o = storeContainer.createOAuthStoreEntry(); 
       storeContainer.getAllOAuthStoreConsumerEntries().put(consumer.getKeyName(), o);
@@ -225,54 +234,32 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
       return consumers;
    }
 
-   public Map<String, OAuthStoreConsumer> getAllMappingKeyAndGadget()
-   {
-      Map<String, OAuthStoreConsumer> consumers = new HashMap<String, OAuthStoreConsumer>();
-      Map<String, OAuthStoreMappingEntry> mappings = this.getOAuthStoreContainer().getAllOAuthStoreMappingEntries();
-      for (String uri : mappings.keySet())
-      {
-         String keyName = mappings.get(uri).getKeyName();
-         OAuthStoreConsumerEntry consumer =
-            this.getOAuthStoreContainer().getAllOAuthStoreConsumerEntries().get(keyName);
-         if (consumer != null)
-         {
-            try
-            {
-               consumers.put(URLDecoder.decode(uri, "UTF-8"), consumer.toOAuthStoreConsumer());
-            }
-            catch (Exception e)
-            {
-               //should log this
-               e.printStackTrace();
-            }
-         }
-      }
-      
-      return consumers;
-   }
-
-   public void addMappingKeyAndGadget(String keyName, String gadgetUri) throws Exception
+   public void addMappingKeyAndGadget(String keyName, String gadgetUri) throws OAuthStoreException
    {
       OAuthStoreContainer storeContainer = this.getOAuthStoreContainer();
-      if (getConsumer(keyName) == null)
+      if (getConsumer(keyName) != null)
       {
-         throw new Exception("Consumer " + keyName + " is not exist");
+         OAuthStoreConsumerEntry consumer = storeContainer.getAllOAuthStoreConsumerEntries().get(keyName);
+         consumer.addGadgetUri(gadgetUri);
       }
-   
-      OAuthStoreMappingEntry gadget = storeContainer.createOAuthStoreMappingEntry();
-      storeContainer.getAllOAuthStoreMappingEntries().put(URLEncoder.encode(gadgetUri, "UTF-8"), gadget);
-      gadget.setGadgetUri(URLEncoder.encode(gadgetUri, "UTF-8"));
-      gadget.setKeyName(keyName);      
+      else
+      {
+         throw new OAuthStoreException(OAuthStoreError.NON_EXIST_RELATIONSHIP);
+      }
    }
 
    public OAuthStoreConsumer findMappingKeyAndGadget(String keyName, String gadgetUri)
    {
-      Map<String, OAuthStoreConsumer> mappings = getAllMappingKeyAndGadget();
-      for (String uri : mappings.keySet())
+      OAuthStoreConsumer consumer = getConsumer(keyName);
+      if (consumer != null)
       {
-         if (uri.equals(gadgetUri) && mappings.get(uri).getKeyName().equals(keyName))
+         List<String> gadgetUris = consumer.getGadgetUris();
+         for (String uri : gadgetUris)
          {
-            return mappings.get(uri);
+            if (uri.equals(gadgetUri))
+            {
+               return consumer;
+            }
          }
       }
       return null;
@@ -280,14 +267,10 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
 
    public void removeMappingKeyAndGadget(String keyName, String gadgetUri)
    {
-      Map<String, OAuthStoreConsumer> mappings = getAllMappingKeyAndGadget();
-      for (String uri : mappings.keySet())
+      OAuthStoreConsumerEntry consumer = this.getOAuthStoreContainer().getAllOAuthStoreConsumerEntries().get(keyName);
+      if (consumer != null)
       {
-         if (uri.equals(gadgetUri) && mappings.get(uri).getKeyName().equals(keyName))
-         {
-            mappings.remove(uri);
-            return;
-         }
+         consumer.removeGadgetUri(gadgetUri);
       }
    }
 }

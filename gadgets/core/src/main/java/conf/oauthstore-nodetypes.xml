@@ -20,7 +20,7 @@
 -->
 <nodeTypes xmlns:nt="http://www.jcp.org/jcr/nt/1.0" xmlns:mix="http://www.jcp.org/jcr/mix/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0">
 
-  <nodeType name="shindig:oauthcontainer" isMixin="false" hasOrderableChildNodes="false" primaryItemName="">
+  <nodeType name="ost:container" isMixin="false" hasOrderableChildNodes="false" primaryItemName="">
     <supertypes>
       <supertype>nt:base</supertype>
       <supertype>mix:referenceable</supertype>
@@ -31,22 +31,16 @@
       </propertyDefinition>
     </propertyDefinitions>
     <childNodeDefinitions>
-      <childNodeDefinition name="*" defaultPrimaryType="shindig:oauthconsumer" autoCreated="false" mandatory="false"
+      <childNodeDefinition name="*" defaultPrimaryType="ost:consumer" autoCreated="false" mandatory="false"
         onParentVersion="COPY" protected="false" sameNameSiblings="false">
         <requiredPrimaryTypes>
-          <requiredPrimaryType>shindig:oauthconsumer</requiredPrimaryType>
-        </requiredPrimaryTypes>
-      </childNodeDefinition>
-      <childNodeDefinition name="*" defaultPrimaryType="shindig:oauthmapping" autoCreated="false" mandatory="false"
-        onParentVersion="COPY" protected="false" sameNameSiblings="false">
-        <requiredPrimaryTypes>
-          <requiredPrimaryType>shindig:oauthmapping</requiredPrimaryType>
+          <requiredPrimaryType>ost:consumer</requiredPrimaryType>
         </requiredPrimaryTypes>
       </childNodeDefinition>
     </childNodeDefinitions>
   </nodeType>
   
-  <nodeType name="shindig:oauthconsumer" isMixin="false" hasOrderableChildNodes="false" primaryItemName="">
+  <nodeType name="ost:consumer" isMixin="false" hasOrderableChildNodes="false" primaryItemName="">
     <supertypes>
       <supertype>nt:base</supertype>
       <supertype>mix:referenceable</supertype>
@@ -64,25 +58,10 @@
       <propertyDefinition name="keyType" requiredType="String" autoCreated="false" mandatory="false" onParentVersion="COPY" protected="false" multiple="false">
         <valueConstraints/>
       </propertyDefinition>
-      <propertyDefinition name="keyName" requiredType="String" autoCreated="false" mandatory="false" onParentVersion="COPY" protected="false" multiple="false">
-        <valueConstraints/>
-      </propertyDefinition>
       <propertyDefinition name="callbackUrl" requiredType="String" autoCreated="false" mandatory="false" onParentVersion="COPY" protected="false" multiple="false">
         <valueConstraints/>
       </propertyDefinition>
-    </propertyDefinitions>
-  </nodeType>
-  
-  <nodeType name="shindig:oauthmapping" isMixin="false" hasOrderableChildNodes="false" primaryItemName="">
-    <supertypes>
-      <supertype>nt:base</supertype>
-      <supertype>mix:referenceable</supertype>
-    </supertypes>
-    <propertyDefinitions>
-      <propertyDefinition name="gadgetUri" requiredType="String" autoCreated="false" mandatory="false" onParentVersion="COPY" protected="false" multiple="false">
-        <valueConstraints/>
-      </propertyDefinition>
-      <propertyDefinition name="keyName" requiredType="String" autoCreated="false" mandatory="false" onParentVersion="COPY" protected="false" multiple="false">
+      <propertyDefinition name="gadgetUris" requiredType="String" autoCreated="false" mandatory="false" onParentVersion="COPY" protected="false" multiple="true">
         <valueConstraints/>
       </propertyDefinition>
     </propertyDefinitions>

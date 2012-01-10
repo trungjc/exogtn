@@ -26,13 +26,34 @@
    <component>
       <key>org.exoplatform.portal.gadget.core.OAuthStoreConsumerService</key>
       <type>org.exoplatform.portal.gadget.core.impl.OAuthStoreConsumerServiceImpl</type>
-      <init-params>
-         <value-param>
-            <name>oauth.config</name>
-            <value>config/oauth.json</value>
-         </value-param>
-      </init-params>
    </component>
+
+   <external-component-plugins>
+      <target-component>org.exoplatform.services.jcr.RepositoryService</target-component>
+      <component-plugin>
+         <name>add.namespaces</name>
+         <set-method>addPlugin</set-method>
+         <type>org.exoplatform.services.jcr.impl.AddNamespacesPlugin</type>
+         <init-params>
+            <properties-param>
+               <name>namespaces</name>
+               <property name="ost" value="http://www.gatein.org/jcr/oauthstore/1.0/" />
+            </properties-param>
+         </init-params>
+      </component-plugin>
+      <component-plugin>
+         <name>add.nodeType</name>
+         <set-method>addPlugin</set-method>
+         <type>org.exoplatform.services.jcr.impl.AddNodeTypePlugin</type>
+         <init-params>
+            <values-param>
+               <name>autoCreatedInNewRepository</name>
+               <description>Node types configuration file</description>
+               <value>jar:/conf/oauthstore-nodetypes.xml</value>
+            </values-param>
+         </init-params>
+      </component-plugin>
+   </external-component-plugins>
 
    <external-component-plugins>
       <target-component>org.exoplatform.commons.chromattic.ChromatticManager</target-component>
@@ -47,7 +68,7 @@
             </value-param>
             <value-param>
                <name>workspace-name</name>
-               <value>portal-work</value>
+               <value>portal-test</value>
             </value-param>
             <values-param>
                <name>entities</name>
@@ -57,5 +78,5 @@
          </init-params>
       </component-plugin>
    </external-component-plugins>
-   
+
 </configuration>
