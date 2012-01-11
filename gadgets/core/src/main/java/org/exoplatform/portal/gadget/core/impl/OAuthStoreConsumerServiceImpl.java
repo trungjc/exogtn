@@ -18,7 +18,6 @@
  */
 package org.exoplatform.portal.gadget.core.impl;
 
-import org.apache.shindig.gadgets.GadgetException;
 import org.chromattic.api.ChromatticSession;
 import org.exoplatform.commons.chromattic.ChromatticLifeCycle;
 import org.exoplatform.commons.chromattic.ChromatticManager;
@@ -30,6 +29,8 @@ import org.exoplatform.portal.gadget.core.OAuthStoreConsumer;
 import org.exoplatform.portal.gadget.core.OAuthStoreConsumerService;
 import org.exoplatform.portal.gadget.core.OAuthStoreError;
 import org.exoplatform.portal.gadget.core.OAuthStoreException;
+import org.gatein.common.logging.Logger;
+import org.gatein.common.logging.LoggerFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -47,6 +48,8 @@ import java.util.Map;
  */
 public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
 {
+   private final Logger log = LoggerFactory.getLogger(OAuthStoreConsumerService.class);
+   
    private static final String OAUTH_CONFIG = "oauth.config";
    private static final String CONSUMER_SECRET_KEY = "consumer_secret";
    private static final String CONSUMER_KEY_KEY = "consumer_key";
@@ -78,17 +81,15 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
       }
       catch (IOException e)
       {
-         //Should log this
-         e.printStackTrace();
+         log.error("Can not load oauth file: " + file + e.getMessage());
       }
-      catch (GadgetException e)
+      catch (OAuthStoreException e)
       {
-         //Should log this
-         e.printStackTrace();
+         log.error("Error parsing data" + e.getMessage());
       }
    }
 
-   private void initFromConfigString(String oauthConfigStr) throws GadgetException
+   private void initFromConfigString(String oauthConfigStr) throws OAuthStoreException
    {
       try
       {
@@ -103,20 +104,23 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
       }
       catch (JSONException e)
       {
-         throw new GadgetException(GadgetException.Code.OAUTH_STORAGE_ERROR, e);
+         throw new OAuthStoreException(OAuthStoreError.JSON_SYNTAX_ERROR, e);
       }
       catch (URISyntaxException e)
       {
-         throw new GadgetException(GadgetException.Code.OAUTH_STORAGE_ERROR, e);
+         throw new OAuthStoreException(OAuthStoreError.URI_SYNTAX_ERROR, e);
       }
    }
 
-   private void storeConsumerInfos(URI gadgetUri, JSONObject oauthConfig) throws JSONException, GadgetException
+   private void storeConsumerInfos(URI gadgetUri, JSONObject oauthConfig) throws JSONException
    {
       for (String keyName : JSONObject.getNames(oauthConfig))
       {
-         JSONObject consumerInfo = oauthConfig.getJSONObject(keyName);
-         storeConsumerInfo(gadgetUri, keyName, consumerInfo);
+         if (getConsumer(keyName) == null)
+         {
+            JSONObject consumerInfo = oauthConfig.getJSONObject(keyName);
+            storeConsumerInfo(gadgetUri, keyName, consumerInfo);
+         }
       }
    }
 
@@ -137,18 +141,18 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
          //store consumer
          storeConsumer(new OAuthStoreConsumer(keyName, consumerKey, consumerSecret, keyType, callbackUrl));
                   
+         log.info("Stored consumer with key name " + keyName);
+         
          //store mapping of consumer and gadget uri
          addMappingKeyAndGadget(keyName, gadgetUri.toASCIIString());
       }
       catch (OAuthStoreException e)
       {
-         //should log this
-         e.printStackTrace();
+         log.error("OAuth store error " + e.getMessage());
       }
       catch (Exception e)
       {
-         //should log this
-         e.printStackTrace();
+         log.error("Has error " + e.getMessage());
       }
    }
    
@@ -190,9 +194,9 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
       return getConsumer(defaultKeyName);
    }
 
-   public OAuthStoreConsumer getConsumer(String name)
+   public OAuthStoreConsumer getConsumer(String keyName)
    {
-      OAuthStoreConsumerEntry consumer = this.getOAuthStoreContainer().getAllOAuthStoreConsumerEntries().get(name);
+      OAuthStoreConsumerEntry consumer = this.getOAuthStoreContainer().getAllOAuthStoreConsumerEntries().get(keyName);
       if (consumer != null)
       {
          return consumer.toOAuthStoreConsumer();
@@ -218,9 +222,9 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
       o.setCallbackUrl(consumer.getCallbackUrl());
    }
 
-   public void removeConsumer(String name)
+   public void removeConsumer(String keyName)
    {
-      this.getOAuthStoreContainer().getAllOAuthStoreConsumerEntries().remove(name);
+      this.getOAuthStoreContainer().getAllOAuthStoreConsumerEntries().remove(keyName);
    }
 
    public List<OAuthStoreConsumer> getAllConsumers()
@@ -239,8 +243,16 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
       OAuthStoreContainer storeContainer = this.getOAuthStoreContainer();
       if (getConsumer(keyName) != null)
       {
-         OAuthStoreConsumerEntry consumer = storeContainer.getAllOAuthStoreConsumerEntries().get(keyName);
-         consumer.addGadgetUri(gadgetUri);
+         try
+         {
+            URI uri = new URI(gadgetUri);
+            OAuthStoreConsumerEntry consumer = storeContainer.getAllOAuthStoreConsumerEntries().get(keyName);
+            consumer.addGadgetUri(uri.toASCIIString());
+         }
+         catch (URISyntaxException e)
+         {
+            throw new OAuthStoreException(OAuthStoreError.URI_SYNTAX_ERROR);
+         }
       }
       else
       {

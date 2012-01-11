@@ -185,7 +185,15 @@ public class ExoOAuthStore implements OAuthStore
       }
       if (defaultKey != null)
       {
-         dataService.storeDefaultConsumer(defaultKey);
+         if (dataService.getConsumer(defaultKeyName) == null)
+         {
+            dataService.storeDefaultConsumer(defaultKey);
+            log.warn("Stored data of default key " + defaultKeyName);
+         }
+         else
+         {
+            log.warn("Do not save any data, default key " + defaultKeyName + " was existing before");
+         }
       }
       else
       {

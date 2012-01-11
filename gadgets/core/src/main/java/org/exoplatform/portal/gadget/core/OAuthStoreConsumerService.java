@@ -18,9 +18,7 @@
  */
 package org.exoplatform.portal.gadget.core;
 
-
 import java.util.List;
-import java.util.Map;
 
 /**
  * Manage information of all consumer, configuration mappings between consumer and gadget uri. 
@@ -47,13 +45,14 @@ public interface OAuthStoreConsumerService
 
    /**
     * Get a consumer with name
-    * @param name
+    * @param keyName
     * @return consumer
     */
-   public OAuthStoreConsumer getConsumer(String name);
+   public OAuthStoreConsumer getConsumer(String keyName);
 
    /**
     * Store consumer into storage
+    * A consumer is identified by its keyName
     * @param consumer
     * @throws OAuthStoreException when keyName is duplication to another consumer
     *  @see OAuthStoreError
@@ -65,7 +64,7 @@ public interface OAuthStoreConsumerService
     * when consumer is removed, all configuration that mapped to this consumer will be removed
     * @param name
     */
-   public void removeConsumer(String name);
+   public void removeConsumer(String keyName);
    
    /**
     * Get all consumers that stored in storage
@@ -75,7 +74,7 @@ public interface OAuthStoreConsumerService
    
    /**
     * Add new mapping configuration of a consumer and gadget uri
-    * Relationship of consumer and gadget uri is many to many
+    * A consumer can be mapped to many gadget uris
     * @param keyName name of an existing consumer
     * @param gadgetUri
     * @throws OAuthStoreException if keyName indicates non-existing consumer or gadgetUri is not URL format standard
@@ -85,7 +84,7 @@ public interface OAuthStoreConsumerService
 
    /**
     * Find a mapping configuration of a consumer and gadget uri
-    * Relationship of consumer and gadget uri is many to many
+    * A consumer can be mapped to many gadget uris
     * @param keyName
     * @param gadgetUri
     * @return consumer or null if not found any mapping configuration
@@ -94,7 +93,7 @@ public interface OAuthStoreConsumerService
    
    /**
     * Remove configuration of consumer and gadget uri
-    * Relationship of consumer and gadget uri is many to many
+    * A consumer can be mapped to many gadget uris
     * @param keyName
     * @param gadgetUri
     */
