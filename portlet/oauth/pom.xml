@@ -29,12 +29,12 @@
       <dependency>
          <groupId>org.juzu</groupId>
          <artifactId>juzu-core</artifactId>
-         <version>0.5-SNAPSHOT</version>
+         <version>0.4.3-SNAPSHOT</version>
       </dependency>
       <dependency>
          <groupId>org.juzu</groupId>
          <artifactId>juzu-overlay-gatein</artifactId>
-         <version>0.5-SNAPSHOT</version>
+         <version>0.4.3-SNAPSHOT</version>
          <type>war</type>
       </dependency>
    </dependencies>
