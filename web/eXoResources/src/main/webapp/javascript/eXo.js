@@ -171,3 +171,14 @@ eXo.debug = function(message) {
 		eXo.webui.UINotification.addMessage(message);
 	}
 } ;
+
+eXo.addEvent = function(element, eventName, handler, data) {
+   var elementId = typeof element != 'object' ? element : element.id;
+	var jqElement = $("#" + elementId);
+	if (eventName.toLowerCase().indexOf("focus") != -1 || eventName.toLowerCase().indexOf("blur") != -1) {
+	   if (jqElement.attr("tabIndex") == undefined) {
+	      jqElement.attr("tabIndex", 0);
+	   }
+	}
+	jqElement.bind(eventName, data, handler);
+};
