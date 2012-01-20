@@ -37,18 +37,11 @@ import org.exoplatform.services.log.Log;
 public class ExoOAuthStore implements OAuthStore
 {
    private static final Log log = ExoLogger.getLogger(OAuthStore.class);
-   
-   private OAuthStoreConsumerService dataService;
 
    /**
-    * Default key file to use when no key is set in gadget
+    * Key to use when no other key is found.
     */
-   private String defaultKeyFile;
-   
-   /**
-    * Name of default key to use when no key is set in gadget
-    */
-   private String defaultKeyName;
+   private OAuthStoreConsumer defaultConsumer;
    
    /**
     * Callback to use when no per-key callback URL is found.
@@ -66,37 +59,25 @@ public class ExoOAuthStore implements OAuthStore
 
    public ExoOAuthStore(String signingKeyFile, String signingKeyName, String defaultCalbackUrl)
    {
-      this.defaultKeyFile = signingKeyFile;
-      this.defaultKeyName = signingKeyName;
       this.defaultCallbackUrl = defaultCalbackUrl;
-      dataService =
-         (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(
-            OAuthStoreConsumerService.class);
-      loadDefaultKey();
+      loadDefaultKey(signingKeyFile, signingKeyName);
    }
 
    public void setDefaultCallbackUrl(String defaultCallbackUrl)
    {
       this.defaultCallbackUrl = defaultCallbackUrl;
    }
-   
-   public void setDetaultKeyFile(String defaultKeyFile)
-   {
-      this.defaultKeyFile = defaultKeyFile;
-   }
-   
-   public void setDetaultKeyName(String defaultKeyName)
-   {
-      this.defaultKeyName = defaultKeyName;
-   }
 
    public ConsumerInfo getConsumerKeyAndSecret(SecurityToken securityToken, String serviceName,
       OAuthServiceProvider provider) throws GadgetException
    {
-      OAuthStoreConsumer consumer = dataService.findMappingKeyAndGadget(serviceName, securityToken.getAppUrl());
+      OAuthStoreConsumerService service =
+         (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(
+            OAuthStoreConsumerService.class);
+      OAuthStoreConsumer consumer = service.findMappingKeyAndGadget(serviceName, securityToken.getAppUrl());
       if (consumer == null)
       {
-         consumer = dataService.getDefaultConsumer();
+         consumer = defaultConsumer;
       }
       if (consumer == null)
       {
@@ -166,9 +147,9 @@ public class ExoOAuthStore implements OAuthStore
       return tokenKey;
    }
    
-   private void loadDefaultKey()
+   private void loadDefaultKey(String defaultKeyFile, String defaultKeyName)
    {
-      OAuthStoreConsumer defaultKey = null;
+      OAuthStoreConsumer consumer = null;
       if (!StringUtils.isBlank(defaultKeyFile))
       {
          try
@@ -176,24 +157,16 @@ public class ExoOAuthStore implements OAuthStore
             log.info("Loading OAuth signing key from " + defaultKeyFile);
             String privateKey = IOUtils.toString(ResourceLoader.open(defaultKeyFile), "UTF-8");
             privateKey = BasicOAuthStore.convertFromOpenSsl(privateKey);
-            defaultKey = new OAuthStoreConsumer(defaultKeyName, null, privateKey, "RSA_PRIVATE", null);
+            consumer = new OAuthStoreConsumer(defaultKeyName, null, privateKey, "RSA_PRIVATE", null);
          }
          catch (Throwable t)
          {
             log.warn("Couldn't load key file " + defaultKeyFile);
          }
       }
-      if (defaultKey != null)
+      if (consumer != null)
       {
-         if (dataService.getConsumer(defaultKeyName) == null)
-         {
-            dataService.storeDefaultConsumer(defaultKey);
-            log.warn("Stored data of default key " + defaultKeyName);
-         }
-         else
-         {
-            log.warn("Do not save any data, default key " + defaultKeyName + " was existing before");
-         }
+         defaultConsumer = consumer;
       }
       else
       {

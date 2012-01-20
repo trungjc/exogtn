@@ -29,7 +29,7 @@
       <init-params>
          <value-param>
             <name>oauth.config</name>
-            <value>config/oauth.json</value>
+            <value>conf/oauthstore/oauth.json</value>
          </value-param>
       </init-params>
    </component>

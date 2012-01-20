@@ -54,6 +54,7 @@
          <resource>
             <directory>src/main/java</directory>
             <includes>
+               <include>**/oauth.json</include>
                <include>**/*.xml</include>
             </includes>
          </resource>

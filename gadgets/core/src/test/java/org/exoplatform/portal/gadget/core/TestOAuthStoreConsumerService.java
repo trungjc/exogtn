@@ -76,25 +76,6 @@ public class TestOAuthStoreConsumerService extends AbstractPortalTest
       assertNull(service.getConsumer("testKey"));
    }
    
-   public void testStoreDefaultConsumer() throws Exception
-   {
-      OAuthStoreConsumer c =
-         new OAuthStoreConsumer("testKey", "testKey", "testKey123456", "HMAC_SYMMETRIC",
-            "http://test.com/eXogadgetServer/oauth/callback");
-      service.storeDefaultConsumer(c);
-      OAuthStoreConsumer c1 = service.getDefaultConsumer();
-      
-      assertNotNull(c1);
-      assertEquals("testKey", c1.getKeyName());
-      assertEquals("testKey", c1.getConsumerKey());
-      assertEquals("testKey123456", c1.getConsumerSecret());
-      assertEquals("HMAC_SYMMETRIC", c1.getKeyType());
-      assertEquals("http://test.com/eXogadgetServer/oauth/callback", c1.getCallbackUrl());
-      
-      service.removeConsumer("testKey");
-      assertNull(service.getConsumer("testKey"));
-   }
-   
    public void testDuplicatedConsumer() throws Exception
    {
       OAuthStoreConsumer c =
@@ -121,7 +102,7 @@ public class TestOAuthStoreConsumerService extends AbstractPortalTest
       
       try
       {
-         service.storeDefaultConsumer(c);
+         service.storeConsumer(c);
       }
       catch (OAuthStoreException e)
       {
@@ -143,7 +124,7 @@ public class TestOAuthStoreConsumerService extends AbstractPortalTest
       OAuthStoreConsumer c2 =
          new OAuthStoreConsumer("testKey2", "testKey2", "testKey123456", "HMAC_SYMMETRIC",
             "http://test.com/eXogadgetServer/oauth/callback2");
-      service.storeDefaultConsumer(c);
+      service.storeConsumer(c);
       service.storeConsumer(c1);
       service.storeConsumer(c2);
       

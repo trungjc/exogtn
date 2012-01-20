@@ -31,12 +31,7 @@ import java.util.Map;
  */
 @PrimaryType(name = "ost:container")
 public abstract class OAuthStoreContainer
-{
-   @Property(name = "defaultKeyName")
-   public abstract String getDefaultKeyName();
-   
-   public abstract void setDefaultKeyName(String defaultKeyName);
-   
+{   
    @Create
    protected abstract OAuthStoreConsumerEntry createOAuthStoreEntry();
    

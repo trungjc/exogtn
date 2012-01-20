@@ -30,20 +30,6 @@ import java.util.List;
 public interface OAuthStoreConsumerService
 {
    /**
-    * Set default consumer in system. A system has only one default consumer
-    * @param consumer
-    * @throws OAuthStoreException when keyName is duplication to another consumer
-    * @see OAuthStoreError
-    */
-   public void storeDefaultConsumer(OAuthStoreConsumer consumer) throws OAuthStoreException;
-   
-   /**
-    * Get default consumer in system. A system has only one default consumer
-    * @return consumer
-    */
-   public OAuthStoreConsumer getDefaultConsumer();
-
-   /**
     * Get a consumer with name
     * @param keyName
     * @return consumer

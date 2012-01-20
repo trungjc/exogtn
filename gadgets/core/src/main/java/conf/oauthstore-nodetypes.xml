@@ -25,11 +25,6 @@
       <supertype>nt:base</supertype>
       <supertype>mix:referenceable</supertype>
     </supertypes>
-    <propertyDefinitions>
-      <propertyDefinition name="defaultKeyName" requiredType="String" autoCreated="false" mandatory="false" onParentVersion="COPY" protected="false" multiple="false">
-        <valueConstraints/>
-      </propertyDefinition>
-    </propertyDefinitions>
     <childNodeDefinitions>
       <childNodeDefinition name="*" defaultPrimaryType="ost:consumer" autoCreated="false" mandatory="false"
         onParentVersion="COPY" protected="false" sameNameSiblings="false">

@@ -18,13 +18,12 @@
  */
 package org.exoplatform.portal.gadget.core.impl;
 
+import org.apache.shindig.common.util.ResourceLoader;
 import org.chromattic.api.ChromatticSession;
 import org.exoplatform.commons.chromattic.ChromatticLifeCycle;
 import org.exoplatform.commons.chromattic.ChromatticManager;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
-import org.exoplatform.portal.gadget.core.GateInContainerConfigLoader;
-import org.exoplatform.portal.gadget.core.GateInGuiceServletContextListener;
 import org.exoplatform.portal.gadget.core.OAuthStoreConsumer;
 import org.exoplatform.portal.gadget.core.OAuthStoreConsumerService;
 import org.exoplatform.portal.gadget.core.OAuthStoreError;
@@ -55,7 +54,6 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
    private static final String CONSUMER_KEY_KEY = "consumer_key";
    private static final String KEY_TYPE_KEY = "key_type";
    private static final String CALLBACK_URL = "callback_url";
-   private String defaultKeyName;
    
    private ChromatticLifeCycle chromatticLifeCycle;
 
@@ -75,8 +73,7 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
    {
       try
       {
-         GateInContainerConfigLoader currentLoader = GateInGuiceServletContextListener.getCurrentLoader();
-         String oauthConfigString = currentLoader.loadContentAsString(file, "UTF-8");
+         String oauthConfigString = ResourceLoader.getContent(file);
          this.initFromConfigString(oauthConfigString);
       }
       catch (IOException e)
@@ -175,23 +172,6 @@ public class OAuthStoreConsumerServiceImpl implements OAuthStoreConsumerService
    public static String convertFromOpenSsl(String privateKey)
    {
       return privateKey.replaceAll("-----[A-Z ]*-----", "").replace("\n", "");
-   }
-   
-   public void storeDefaultConsumer(OAuthStoreConsumer consumer) throws OAuthStoreException
-   {
-      storeConsumer(consumer);
-      defaultKeyName = consumer.getKeyName();
-      getOAuthStoreContainer().setDefaultKeyName(defaultKeyName);
-   }
-
-   public OAuthStoreConsumer getDefaultConsumer()
-   {
-      if (defaultKeyName == null)
-      {
-         defaultKeyName = getOAuthStoreContainer().getDefaultKeyName();
-      }
-      
-      return getConsumer(defaultKeyName);
    }
 
    public OAuthStoreConsumer getConsumer(String keyName)
