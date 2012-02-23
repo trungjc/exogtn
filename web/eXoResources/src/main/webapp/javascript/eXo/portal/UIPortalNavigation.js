@@ -76,27 +76,40 @@ UIPortalNavigation.prototype.buildMenu = function(popupMenu) {
   // Top menu items
   var topItems = DOMUtil.findDescendantsByClass(topContainer, "li", "UITab");
   for (var i = 0; i < topItems.length; i++) {
-    var item = topItems[i];
-    item.onmouseover = eXo.portal.UIPortalNavigation.setTabStyleOnMouseOver ;
-    item.onmouseout = eXo.portal.UIPortalNavigation.setTabStyleOnMouseOut ;
-    if (!item.getAttribute('hidesubmenu')) {
-      item.onmousemove = eXo.portal.UIPortalNavigation.tabOnMouseMove ;
+    var archos = DOMUtil.getElementsBy(function(a) {    	
+    	return a.parentNode === topItems[i] || a.parentNode.parentNode === topItems[i];
+    }, "a", topItems[i]);    
+    var tmp = archos.length ? archos[0] : topItems[i];
+    
+    eXo.addEvent(tmp, "focus", eXo.portal.UIPortalNavigation.setTabStyleOnMouseOver);
+    tmp.onblur = function(e) {
+    	e = e || window.event;
+    	e.which = e.which || e.keyCode;
+    	if (e.which == 9 || e.which == 27) {
+    		//Tab || ESC keypress --> Change tab 
+    		eXo.portal.UIPortalNavigation.setTabStyleOnMouseOut(e, this);        		
+    	}
+    };
+    eXo.addEvent(topItems[i], "mouseover", eXo.portal.UIPortalNavigation.setTabStyleOnMouseOver);
+    eXo.addEvent(topItems[i], "mouseout", eXo.portal.UIPortalNavigation.setTabStyleOnMouseOut);
+    if (!topItems[i].getAttribute('hidesubmenu')) {
+    	topItems[i].onmousemove = eXo.portal.UIPortalNavigation.tabOnMouseMove;
     }
-    item.style.width = item.offsetWidth + "px";
+    topItems[i].style.width = topItems[i].offsetWidth + "px";
+
+    /**
+     * TODO: fix IE7;
+     */
+    var container = DOMUtil.findFirstDescendantByClass(topItems[i], "ul", this.containerStyleClass);
+    if (container) {
+    	if (eXo.core.Browser.isIE6()) {
+    		container.style.width = topItems[i].offsetWidth + "px";
+    	} else {
+    		container.style.minWidth = topItems[i].offsetWidth + "px";
+    	}
+    }
   }
   
-  /**
-   * TODO: fix IE7;
-   */
-  var container = DOMUtil.findFirstDescendantByClass(item, "ul", this.containerStyleClass);
-  if (container) {
-	  if (eXo.core.Browser.isIE6()) {
-		  container.style.width = item.offsetWidth + "px";
-	  } else {
-		  container.style.minWidth = item.offsetWidth + "px";
-	  }
-  }
-
   var itemConts = DOMUtil.findDescendantsByClass(topContainer, "ul", this.containerStyleClass);
   for (var i = 0; i < itemConts.length; i++) {
 	  var cont = itemConts[i];
@@ -106,29 +119,162 @@ UIPortalNavigation.prototype.buildMenu = function(popupMenu) {
 	  var items = DOMUtil.findDescendantsByClass(cont, "li", this.tabStyleClass);
 	  if(items.length == 0) cont.parentNode.removeChild(cont);
 	  for(var j = 0; j < items.length; j ++) {
+		  var archos = DOMUtil.findDescendantsByTagName(items[j],"a");
+		  for (k = 0; k < archos.length; k++) {
+			  //Make sure uitab will not looses focus
+			  archos[k].tabIndex = -1;
+		  }
 		  items[j].onmouseover = eXo.portal.UIPortalNavigation.onMenuItemOver;
-		  items[j].onmouseout = eXo.portal.UIPortalNavigation.onMenuItemOut;
-	  }
+		  items[j].onmouseout = eXo.portal.UIPortalNavigation.onMenuItemOut;		  		  
+	  }	  
+  }
+
+  if (!eXo.portal.UIPortalNavigation.docEventRegistered) {
+	  var Browser = eXo.core.Browser;
+	  eXo.addEvent(document, "keydown.UIPortalNavigation", eXo.portal.UIPortalNavigation.onKeyDown);
+	  eXo.addEvent(document, "click.UIPortalNavigation", function(e) {
+		  e = e || window.event;
+		  if (!eXo.portal.UIPortalNavigation.currentOpenedMenu) return;
+		  var target = eXo.core.Browser.getEventSource(e);
+		  if (!DOMUtil.findAncestorByClass(target, "li", eXo.portal.UIPortalNavigation.tabStyleClass)) {
+			  eXo.portal.UIPortalNavigation.hideKeyboardContainers(e);
+		  }
+	  });
+	  eXo.portal.UIPortalNavigation.docEventRegistered = true;
   }
 };
-/**
- * Sets the tab style on mouse over and mouse out
- * If the mouse goes out of the item but stays on its sub menu, the item remains highlighted
- */
-// TODO: there's no caller for this method, prepare to remove it
-//UIPortalNavigation.prototype.setTabStyle = function() {
-//  var tab = this;
-//  var tabChildren = eXo.core.DOMUtil.getChildrenByTagName(tab, "div") ;
-//  if (tabChildren[0].className != "HighlightNavigationTab") {
-//    // highlights the tab
-//    eXo.webui.UIHorizontalTabs.changeTabNavigationStyle(tab, true);
-//  } else {
-//    if(tabChildren.length <= 1 || tabChildren[1].id != eXo.portal.UIPortalNavigation.currentOpenedMenu) {
-//      // de-highlights the tab if it doesn't have a submenu (cond 1) or its submenu isn't visible (cond 2)
-//      eXo.webui.UIHorizontalTabs.changeTabNavigationStyle(tab, false);
-//    }
-//  }
-//}
+
+UIPortalNavigation.prototype.hideKeyboardContainers = function(e) {
+	var DOMUtil = eXo.core.DOMUtil;
+	var nav = eXo.portal.UIPortalNavigation;	
+	
+	if (nav.currItem) {
+		var tmp = nav.currItem; 
+		do {
+			tmp.onmouseout.call(tmp, e);
+			tmp = DOMUtil.findAncestorByClass(tmp, nav.tabStyleClass);
+		} while(tmp);
+	}
+	nav.hideMenu();	
+};
+
+UIPortalNavigation.prototype.onKeyDown = function(e) {
+	var DOMUtil = eXo.core.DOMUtil;
+	var nav = eXo.portal.UIPortalNavigation;				
+	
+	e = e || window.event;
+	e.which = e.which || e.keyCode;
+	switch (e.which) {
+	case 27:
+		//ESC		
+	case 9:
+		//Tab
+		nav.hideKeyboardContainers(e);
+		var src = eXo.core.Browser.getEventSource(e);
+		var tab = DOMUtil.findAncestorByClass(src, "HighlightNavigationTab");
+		if (tab) {
+			src.onblur(e);
+		}
+		return;
+	case 37:
+		//Left
+		nav.onLeftKeyPressed(e);
+		break;		
+	case 38:
+		//Up
+		nav.onUpKeyPressed(e);
+		break;
+	case 39:
+		//Right
+		nav.onRightKeyPressed(e);
+		break;
+	case 40:
+		//Down
+		nav.onDownKeyPressed(e);
+		break;
+	default: 
+			return;
+	}
+	
+	if (nav.currItem) {
+		var a = DOMUtil.getChildrenByTagName(nav.currItem, "a")[0];
+		if (a) {
+			DOMUtil.addClass(a, "Selected");		
+			//IE8 : need to setTimeout to make it has focus
+			//jQuery $(a).focus() works without this workaround
+			window.setTimeout(function() {a.focus();}, 0);
+		}
+		return false;
+	}
+};
+
+UIPortalNavigation.prototype.onUpKeyPressed = function(e) {
+	var nav = eXo.portal.UIPortalNavigation;
+	var DOMUtil = eXo.core.DOMUtil;
+	if (!nav.currentOpenedMenu || !nav.currItem) return;
+	
+	var tmp = nav.currItem;
+	do {			
+		var prevItem = DOMUtil.findPreviousElementByTagName(tmp, "li");
+		tmp = prevItem;
+	} while (prevItem && !DOMUtil.hasClass(prevItem, nav.tabStyleClass));
+	
+	if (!prevItem) {
+		var childs = DOMUtil.findChildrenByClass(nav.currItem.parentNode, "li", nav.tabStyleClass);
+		prevItem = childs[childs.length - 1];
+	}
+	nav.currItem.onmouseout(e);
+	nav.currItem = prevItem;
+	prevItem.onmouseover(e);
+};
+
+UIPortalNavigation.prototype.onDownKeyPressed = function(e) {
+	var nav = eXo.portal.UIPortalNavigation;
+	var DOMUtil = eXo.core.DOMUtil;
+	
+	if (!nav.currentOpenedMenu) return;
+	var nextItem;
+	if (nav.currItem) {
+		nav.currItem.onmouseout(e);
+		var tmp = nav.currItem;
+		do {
+			nextItem = DOMUtil.findNextElementByTagName(tmp, "li");
+			tmp = nextItem;
+		} while (nextItem && !DOMUtil.hasClass(nextItem, nav.tabStyleClass));
+	}
+	if (!nextItem) {			
+		var visibleConts = nav.superClass.currentVisibleContainers;
+		var currCont = document.getElementById(visibleConts[visibleConts.length - 1]);
+		nextItem = DOMUtil.findFirstChildByClass(currCont, "li", nav.tabStyleClass);			
+	}
+	nav.currItem = nextItem;
+	nextItem.onmouseover(e);	
+};
+
+UIPortalNavigation.prototype.onLeftKeyPressed = function(e) {
+	var nav = eXo.portal.UIPortalNavigation;
+	if (!nav.currentOpenedMenu || !nav.currItem) return;
+	
+	var parentItem = eXo.core.DOMUtil.findAncestorByClass(nav.currItem, nav.tabStyleClass);
+	if (!parentItem) return;
+	
+	nav.currItem.onmouseout(e);
+	nav.currItem = parentItem;
+};
+
+UIPortalNavigation.prototype.onRightKeyPressed = function(e) {
+	var nav = eXo.portal.UIPortalNavigation;
+	var DOMUtil = eXo.core.DOMUtil;
+	if (!nav.currentOpenedMenu || !nav.currItem) return;
+	
+	var childItem = DOMUtil.findFirstDescendantByClass(nav.currItem, "li", nav.tabStyleClass);
+	if (!childItem) return;
+	
+	var a = DOMUtil.getChildrenByTagName(nav.currItem, "a")[0];
+	DOMUtil.removeClass(a, "Selected");
+	nav.currItem = childItem;
+	childItem.onmouseover(e);
+};
 
 UIPortalNavigation.prototype.generateContainer = function(data) {		
 	var htmlFrags = "<ul class='" + this.containerStyleClass + "' style='display: none;' id='"; 
@@ -143,7 +289,7 @@ UIPortalNavigation.prototype.generateContainer = function(data) {
 		htmlFrags += ("onmouseover='eXo.portal.UIPortalNavigation.onMenuItemOver(this)' onmouseout='eXo.portal.UIPortalNavigation.onMenuItemOut(this)'");
 		htmlFrags += ("' title='" + node.label + "'>");
 		htmlFrags += ("<a class='ItemIcon " + (node.icon ? node.icon : "DefaultPageIcon") + "'" +
-				"href='" + actionLink + "'>" + (node.label.length > 40 ? node.label.substring(0,37) + "..." : node.label) + "</a>");
+				"href='" + actionLink + "' tabindex='-1'>" + (node.label.length > 40 ? node.label.substring(0,37) + "..." : node.label) + "</a>");
 		if (node.childs.length) {
 			htmlFrags += eXo.portal.UIPortalNavigation.generateContainer(node.childs);			
 		}
@@ -154,11 +300,17 @@ UIPortalNavigation.prototype.generateContainer = function(data) {
 };
 
 UIPortalNavigation.prototype.setTabStyleOnMouseOver = function(e) {
+  var DOMUtil = eXo.core.DOMUtil ;
   var tab = this ;
-  if (eXo.portal.UIPortalNavigation.previousMenuItem != tab) {
-    eXo.portal.UIPortalNavigation.hideMenu() ;
+  if (!DOMUtil.hasClass(tab, "UITab")) {
+	  tab = DOMUtil.findAncestorByClass(tab, "UITab");
   }
-  eXo.portal.UIPortalNavigation.setTabStyleOnMouseOut(e, tab) ;
+  if (eXo.portal.UIPortalNavigation.previousMenuItem != tab) {	  
+	  eXo.portal.UIPortalNavigation.hideKeyboardContainers();
+  }
+  //highlights the tab
+  eXo.webui.UIHorizontalTabs.changeTabNavigationStyle(tab, true);
+  
   eXo.portal.UIPortalNavigation.previousMenuItem = tab ;    
   
   var getNodeURL = tab.getAttribute("exo:getNodeURL");
@@ -180,8 +332,7 @@ UIPortalNavigation.prototype.setTabStyleOnMouseOver = function(e) {
   if (!eXo.portal.UIPortalNavigation.menuVisible) {    
     var hideSubmenu = tab.getAttribute('hideSubmenu') ;
     menuItemContainer = eXo.core.DOMUtil.findFirstDescendantByClass(tab, "ul", eXo.portal.UIPortalNavigation.containerStyleClass);
-    if (menuItemContainer && !hideSubmenu) {
-      var DOMUtil = eXo.core.DOMUtil ;
+    if (menuItemContainer && !hideSubmenu) {      
 		  if(eXo.core.Browser.browserType == "ie") {
 		    var navAncestor = DOMUtil.findAncestorByClass(tab, "UINavigationPortlet") ;
 		    var pageBody = document.getElementById("UIPageBody");
@@ -206,15 +357,9 @@ UIPortalNavigation.prototype.setTabStyleOnMouseOver = function(e) {
 
 UIPortalNavigation.prototype.setTabStyleOnMouseOut = function(e, src) {
   var tab = src || this;
-  if (!eXo.core.DOMUtil.hasClass(tab, "HighlightNavigationTab")) {
-    // highlights the tab
-    eXo.webui.UIHorizontalTabs.changeTabNavigationStyle(tab, true);
-  } else {
-    if(tab.id != eXo.portal.UIPortalNavigation.currentOpenedMenu) {
-      // de-highlights the tab if it doesn't have a submenu (cond 1) or its submenu isn't visible (cond 2)
-      eXo.webui.UIHorizontalTabs.changeTabNavigationStyle(tab, false);
-    }
-  }
+  var nav = eXo.portal.UIPortalNavigation;  
+  
+  eXo.webui.UIHorizontalTabs.changeTabNavigationStyle(tab, false);
   eXo.portal.UIPortalNavigation.hideMenuTimeout(300) ;
 }
 
@@ -279,10 +424,6 @@ UIPortalNavigation.prototype.toggleSubMenu = function(e, tab, menuItemContainer)
 				}
 			}
       eXo.portal.UIPortalNavigation.currentOpenedMenu = menuItemContainer.id;
-      
-      /*Hide eXoStartMenu whenever click on the UIApplication*/
-      var uiPortalApplication = document.getElementById("UIPortalApplication") ;
-      uiPortalApplication.onclick = eXo.portal.UIPortalNavigation.hideMenu ;
     } else {
       // hides the sub menu
       eXo.portal.UIPortalNavigation.hideMenuContainer();
@@ -322,8 +463,9 @@ UIPortalNavigation.prototype.hideMenuContainer = function() {
     eXo.portal.UIPortalNavigation.superClass.popVisibleContainer();
     eXo.portal.UIPortalNavigation.superClass.setCloseTimeout();
     eXo.portal.UIPortalNavigation.superClass.hide(menuItemContainer);
-    eXo.portal.UIPortalNavigation.currentOpenedMenu = null;    
+    eXo.portal.UIPortalNavigation.currentOpenedMenu = null;
   }
+  eXo.portal.UIPortalNavigation.currItem = null;
   this.previousMenuItem = false ;
   eXo.portal.UIPortalNavigation.menuVisible = false ;
 };
@@ -360,10 +502,21 @@ UIPortalNavigation.prototype.onMenuItemOver = function(menuItem) {
   if (!menuItem || !menuItem.nodeName) menuItem = this;
   var DOMUtil = eXo.core.DOMUtil;
   
+  var nav = eXo.portal.UIPortalNavigation;
+  if (nav.currItem && nav.currItem !== menuItem) {
+      var tmp = nav.currItem; 
+      do {
+    	  tmp.onmouseout.call(tmp);
+    	  tmp = DOMUtil.findAncestorByClass(tmp, nav.tabStyleClass);    	  
+    	  if (!tmp || tmp === menuItem || DOMUtil.findFirstChildByClass(tmp, nav.containerStyleClass) === menuItem.parentNode) break;
+      } while(true);      
+      nav.currItem = null;
+  }
+  
   var getNodeURL = menuItem.getAttribute("exo:getNodeURL");
   var subContainer = DOMUtil.findFirstDescendantByClass(menuItem, "ul", eXo.portal.UIPortalNavigation.containerStyleClass);
   if (getNodeURL && !subContainer) {
-	  var jsChilds = ajaxAsyncGetRequest(getNodeURL,false)
+	  var jsChilds = ajaxAsyncGetRequest(getNodeURL,false);
 	  try {
 		  var data = eXo.core.JSON.parse(jsChilds);		  		  
 	  } catch (e) {
@@ -380,7 +533,10 @@ UIPortalNavigation.prototype.onMenuItemOver = function(menuItem) {
     
   subContainer = DOMUtil.findFirstDescendantByClass(menuItem, "ul", eXo.portal.UIPortalNavigation.containerStyleClass);
   if (subContainer) {
-    eXo.portal.UIPortalNavigation.superClass.pushVisibleContainer(subContainer.id);
+	var visibleConts = eXo.portal.UIPortalNavigation.superClass.currentVisibleContainers;
+	if (!visibleConts.contains(subContainer.id)) {
+		eXo.portal.UIPortalNavigation.superClass.pushVisibleContainer(subContainer.id);		
+	}
     eXo.portal.UIPortalNavigation.showMenuItemContainer(menuItem, subContainer) ;
     if (!subContainer.firstTime) {
         subContainer.style.width = subContainer.offsetWidth + 2 + "px";
@@ -408,6 +564,9 @@ UIPortalNavigation.prototype.showMenuItemContainer = function(menuItem, menuItem
  */
 UIPortalNavigation.prototype.onMenuItemOut = function(menuItem) {
   if (!menuItem || !menuItem.nodeName) menuItem = this;
+  var DOMUtil = eXo.core.DOMUtil;
+  var a = DOMUtil.getChildrenByTagName(menuItem, "a")[0];
+  DOMUtil.removeClass(a, "Selected");
   
   var subContainer = eXo.core.DOMUtil.findFirstDescendantByClass(menuItem, "ul", eXo.portal.UIPortalNavigation.containerStyleClass);
   if (subContainer) {
