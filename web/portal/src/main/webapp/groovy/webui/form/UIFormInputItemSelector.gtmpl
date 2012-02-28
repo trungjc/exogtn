@@ -28,8 +28,9 @@
 						String submitEvent = "eXo.webui.UIForm.submitEvent('$form.id','SelectItemOption', '')";
 						if (opt.isSelected()) itemSelected = "SelectedItem Item" ;
 						String itemId = uicomponent.getId() + "-" + opt.hashCode();
-						jsmanager.addEventListener(itemId, "mouseover", "eXo.webui.UIItemSelector.onOver", "{over:true, element:this}")
-						jsmanager.addEventListener(itemId, "mouseout", "eXo.webui.UIItemSelector.onOver", "{over:false, element:this}")
+						
+						jsmanager.addEventListener(itemId, "mouseover focus", "eXo.webui.UIItemSelector.onOver", "{over:true, element:this}");
+						jsmanager.addEventListener(itemId, "mouseout blur", "eXo.webui.UIItemSelector.onOver", "{over:false, element:this}");
 				 %>
 						<div id="${itemId}" class="$itemSelected" onclick="$onClick;$setHiddenValue;$submitEvent">
 							<div class="LeftItem">
