@@ -96,7 +96,8 @@ public class PortletRequestContext extends WebuiRequestContext
       //
       if (res instanceof MimeResponse)
       {
-         this.urlBuilder = new PortletURLBuilder(((MimeResponse)res).createActionURL());
+         MimeResponse mimeRes = (MimeResponse)res;
+         this.urlBuilder = new PortletURLBuilder(mimeRes.createActionURL(), mimeRes.createResourceURL());
       }
       else
       {

@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 
+import javax.portlet.BaseURL;
 import javax.portlet.PortletURL;
+import javax.portlet.ResourceURL;
 
 /**
  * Created by The eXo Platform SAS
@@ -42,23 +44,32 @@ public class PortletURLBuilder extends URLBuilder<UIComponent>
    private static Log log = ExoLogger.getLogger(PortletURLBuilder.class);
    /** . */
    private final PortletURL url;
+   private final ResourceURL resURL;   
 
-   public PortletURLBuilder(PortletURL url)
+   public PortletURLBuilder(PortletURL url, ResourceURL resURL)
    {
       this.url = url;
+      this.resURL = resURL;
+   }
+
+   @Override
+   public String createResourceURL(UIComponent targetComponent, String targetBeanId, Parameter[] params)
+   {
+      return createURL(resURL, false, null, targetComponent, null, targetBeanId, true, params);
    }
 
    public String createAjaxURL(UIComponent targetComponent, String action, String confirm, String targetBeanId, Parameter[] params)
    {
-      return createURL(true, confirm, targetComponent, action, targetBeanId, true, params);
+      return createURL(url, true, confirm, targetComponent, action, targetBeanId, true, params);
    }
 
    public String createURL(UIComponent targetComponent, String action, String confirm, String targetBeanId, Parameter[] params)
    {
-      return createURL(false, confirm, targetComponent, action, targetBeanId, true, params);
+      return createURL(url, false, confirm, targetComponent, action, targetBeanId, true, params);
    }
 
    private String createURL(
+      BaseURL url,
       boolean ajax,
       String confirm,
       UIComponent targetComponent, String action, String targetBeanId, boolean escapeXML,
@@ -83,7 +94,14 @@ public class PortletURLBuilder extends URLBuilder<UIComponent>
       //
       if (targetBeanId != null && targetBeanId.trim().length() > 0)
       {
-         url.setParameter(UIComponent.OBJECTID, targetBeanId);
+         if (url instanceof ResourceURL) 
+         {
+            ((ResourceURL)url).setResourceID(targetBeanId);
+         }
+         else
+         {
+            url.setParameter(UIComponent.OBJECTID, targetBeanId);
+         }
       }
 
       //

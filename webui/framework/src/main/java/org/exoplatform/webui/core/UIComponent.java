@@ -288,6 +288,23 @@ abstract public class UIComponent
    {
       return renderEventURL(false, name, beanId, params);
    }
+   
+   public String serveResourceURL(String beanId) throws Exception
+   {
+      return serveResourceURL(beanId, null);
+   }
+
+   public String serveResourceURL(String beanId, Parameter[] params) throws Exception
+   {
+      if (!(this instanceof ResourceServingComponent))
+      {
+         throw new IllegalStateException("Can't create serviceResource url for non ResourceServingComponent");
+      }
+      
+      WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();
+      URLBuilder<UIComponent> urlBuilder = context.getURLBuilder();
+      return urlBuilder.createResourceURL(this, beanId, params);
+   }
 
    /**
     * Render an event URL of a given bean.

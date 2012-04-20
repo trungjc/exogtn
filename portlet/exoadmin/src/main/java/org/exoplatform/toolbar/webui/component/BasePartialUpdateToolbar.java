@@ -113,9 +113,7 @@ public abstract class BasePartialUpdateToolbar extends UIPortletApplication
 
    @Override
    public void serveResource(WebuiRequestContext context) throws Exception
-   {      
-      super.serveResource(context);
-      
+   {            
       ResourceRequest req = context.getRequest();
       String id = req.getResourceID();
       
