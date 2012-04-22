@@ -1,7 +1,12 @@
-<%	
-		import org.exoplatform.portal.webui.navigation.UIPortalNavigation;
-					
-		def uiPortalNavigation = uicomponent.getChild(UIPortalNavigation.class); 
-		uiPortalNavigation.loadTreeNodes();
-		uicomponent.renderChildren();
-%>
+<div id="$uicomponent.id" class="UISitemap" >
+	<div class="ClearFix">
+		<div class="CollapseAll FL" onclick="<%=uicomponent.event('CollapseAllNode')%>">
+			<%=_ctx.appRes(uicomponent.getName() + ".label.CollapseAll")%>
+		</div>
+	</div>
+	<div class="SitemapContent">		
+		<%			
+			uicomponent.renderChildren();
+		%>		
+	</div>
+</div>

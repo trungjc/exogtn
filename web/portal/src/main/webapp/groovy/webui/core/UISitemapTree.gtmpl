@@ -1,27 +1,17 @@
 <%
 	import org.exoplatform.web.application.JavascriptManager;
-	import org.exoplatform.webui.core.UIPortletApplication;
-	import org.exoplatform.portal.mop.user.UserNode;
 	import javax.portlet.MimeResponse;
-	import org.exoplatform.portal.application.PortalRequestContext;
-	import org.exoplatform.portal.webui.util.Util;
 	import org.exoplatform.portal.webui.navigation.TreeNode;
 	import org.exoplatform.web.url.PortalURL;
-	import org.exoplatform.web.url.navigation.NavigationResource;
 	import javax.portlet.ResourceURL;
+	import org.exoplatform.webui.application.WebuiRequestContext;
+	import org.exoplatform.webui.application.portlet.PortletURLBuilder;
 
-	PortalRequestContext pcontext = Util.getPortalRequestContext();		
+	WebuiRequestContext pcontext = _ctx.getRequestContext();
 	JavascriptManager jsmanager = pcontext.getJavascriptManager();
-	jsmanager.importJavascript('eXo.webui.UISiteMap') ;
-
-	UIPortletApplication siteMapPortlet = uicomponent.getParent();
-	def useAJAX = siteMapPortlet.isUseAjax();
-
-	def actionCollapseAll = uicomponent.event("CollapseAllNode");
-
-	PortalURL nodeURL = nodeurl();
+	jsmanager.importJavascript('eXo.webui.UISiteMap') ;	
 							
-	public void renderNodes(TreeNode rootTree, PortalURL nodeURL, boolean useAjax) {
+	public void renderNodes(TreeNode rootTree, PortalURL nodeURL) {
 		List childrenNodes = rootTree.getChildren();
 		int childrenSize = childrenNodes.size() ;  
 		int size = 0;	
@@ -37,7 +27,7 @@
 			def actionLink = "#";
 			if(treeNode.getNode().getPageRef() != null) {
 			   nodeURL.setNode(node);
-			   nodeURL.setAjax(useAjax);
+			   nodeURL.setAjax(uicomponent.isUseAjax());
 			   actionLink = nodeURL.toString(); 
 			}
 			
@@ -63,11 +53,8 @@
 					renderNodes(treeNode, nodeURL, useAjax);
 					
 				} else {
-				    MimeResponse res = _ctx.getRequestContext().getResponse();
-					ResourceURL resourceURL = res.createResourceURL();
-					resourceURL.setResourceID(treePath);			
-					
-					def actionExpand = "eXo.webui.UISiteMap.updateTreeNode(this, '" + resourceURL.toString() + "')";	
+					def resourceURL = uicomponent.serveResourceURL(treePath);					
+					def actionExpand = "eXo.webui.UISiteMap.updateTreeNode(this, '" + resourceURL + "')";	
 					
 					println """
 						<div class="$lastNode Node">
@@ -79,7 +66,7 @@
 							<div class="ChildrenContainer" style="display: none">
 					""";
 					
-				    renderNodes(treeNode, nodeURL, useAjax);
+				    renderNodes(treeNode, nodeURL);
 				}
 
 
@@ -103,19 +90,13 @@
 			}
 
 		}		
-	}  
+	}  		
 %>
-
-<div id="$uicomponent.id" class="UISitemap" >
-	<div class="ClearFix">
-		<div class="CollapseAll FL" onclick="$actionCollapseAll">
-			<%=_ctx.appRes(siteMapPortlet.getName() + ".label.CollapseAll")%>
-		</div>
-	</div>
-	<div class="SitemapContent">
-		<div class="UISiteTree">
-			<% TreeNode treeNodeRoot = uicomponent.getTreeNodes() ;%>
-			<% renderNodes(treeNodeRoot,nodeURL,useAJAX); %>
-		</div>
-	</div>
+<div id="$uicomponent.id" class="UISiteTree">
+<%
+	PortalURL nodeURL = nodeurl();
+	uicomponent.loadTreeNodes();
+	TreeNode treeNodeRoot = uicomponent.getTreeNodes();
+	renderNodes(treeNodeRoot,nodeURL);
+%>	
 </div>
