@@ -27,11 +27,10 @@ import org.exoplatform.webui.application.portlet.PortletRequestContext;
 import java.io.Writer;
 import java.util.Set;
 
-import javax.portlet.ResourceRequest;
 import javax.portlet.WindowState;
 
 @Serialized
-abstract public class UIPortletApplication extends UIApplication implements ResourceServingComponent
+abstract public class UIPortletApplication extends UIApplication
 {
    private int minWidth = 300;
 
@@ -133,34 +132,20 @@ abstract public class UIPortletApplication extends UIApplication implements Reso
       }
       super.processRender(context);
    }
-   
+
    /**
-    * uicomponent of a portlet should override this method to leverage serveResource that JSR286 offers 
+    * Root uicomponent of a portlet can override this method to leverage serveResource that JSR286 offers by itself
     * @param context - WebUI context
     */
-   @Override
    public void serveResource(WebuiRequestContext context) throws Exception
-   {      
-   }
-   
-   public void serveResource(WebuiApplication app, WebuiRequestContext context) throws Exception
-   {      
-      if (!(context.getRequest() instanceof ResourceRequest))
-      {
-         throw new IllegalStateException("serveSource can only be called in portlet context");
-      }
-      
+   {
       String componentId = context.getRequestParameter(context.getUIComponentIdParameterName());
-      if (componentId == null || componentId.equals(getId()))
-      {
-         serveResource(context);
-      }
-      else
+      if (componentId != null)
       {
          UIComponent uiTarget = findComponentById(componentId);
-         if (uiTarget != null && uiTarget instanceof ResourceServingComponent)
+         if (uiTarget != null && uiTarget != this)
          {
-            ((ResourceServingComponent)uiTarget).serveResource(context);            
+            ((ResourceServingComponent)uiTarget).serveResource(context);
          }
       }
    }

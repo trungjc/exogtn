@@ -89,11 +89,6 @@ abstract public class URLBuilder<T>
    {
       return createAjaxURL(targetComponent, action, confirm, targetBeanId, (Parameter[])null);
    }
-   
-   public final String createResourceURL(T targetComponent, String targetBeanId)
-   {
-      return createResourceURL(targetComponent, targetBeanId, (Parameter[])null);
-   }
 
    public String createResourceURL(T targetComponent, String targetBeanId, Parameter[] params) 
    {

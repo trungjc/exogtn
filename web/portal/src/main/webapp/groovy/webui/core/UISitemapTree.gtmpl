@@ -53,7 +53,7 @@
 					renderNodes(treeNode, nodeURL, useAjax);
 					
 				} else {
-					def resourceURL = uicomponent.serveResourceURL(treePath);					
+					def resourceURL = uicomponent.resourceURL(treePath);					
 					def actionExpand = "eXo.webui.UISiteMap.updateTreeNode(this, '" + resourceURL + "')";	
 					
 					println """

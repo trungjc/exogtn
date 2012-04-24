@@ -289,12 +289,12 @@ abstract public class UIComponent
       return renderEventURL(false, name, beanId, params);
    }
    
-   public String serveResourceURL(String beanId) throws Exception
+   public String resourceURL(String resourceId) throws Exception
    {
-      return serveResourceURL(beanId, null);
+      return resourceURL(resourceId, null);
    }
 
-   public String serveResourceURL(String beanId, Parameter[] params) throws Exception
+   public String resourceURL(String resourceId, Parameter[] params) throws Exception
    {
       if (!(this instanceof ResourceServingComponent))
       {
@@ -303,7 +303,7 @@ abstract public class UIComponent
       
       WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();
       URLBuilder<UIComponent> urlBuilder = context.getURLBuilder();
-      return urlBuilder.createResourceURL(this, beanId, params);
+      return urlBuilder.createResourceURL(this, resourceId, params);
    }
 
    /**

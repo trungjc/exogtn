@@ -249,7 +249,7 @@ public class PortletApplication extends WebuiApplication
          context.setUIApplication(uiApp);
          if (uiApp instanceof UIPortletApplication)
          {
-            ((UIPortletApplication)uiApp).serveResource(this, context);           
+            ((UIPortletApplication)uiApp).serveResource(context);           
          }
          
          // Store ui root
