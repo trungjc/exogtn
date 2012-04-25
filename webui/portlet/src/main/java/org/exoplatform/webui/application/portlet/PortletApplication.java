@@ -247,10 +247,7 @@ public class PortletApplication extends WebuiApplication
          StateManager sm = getStateManager();
          UIApplication uiApp = sm.restoreUIRootComponent(context);
          context.setUIApplication(uiApp);
-         if (uiApp instanceof UIPortletApplication)
-         {
-            ((UIPortletApplication)uiApp).serveResource(context);           
-         }
+         uiApp.serveResource(context);
          
          // Store ui root
          sm.storeUIRootComponent(context);

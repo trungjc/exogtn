@@ -277,7 +277,7 @@ public class UISiteMapTree extends UIComponent implements ResourceServingCompone
       json.put("collapseURL", url("CollapseNode", nodeId));  
       
       PortletRequestContext pcontext = WebuiRequestContext.<PortletRequestContext>getCurrentInstance();
-      String rsURL = serveResourceURL(nodeId);      
+      String rsURL = resourceURL(nodeId);      
       json.put("getNodeURL", rsURL);            
       
       if (node.getPageRef() != null)

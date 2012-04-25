@@ -19,12 +19,11 @@
 
 package org.exoplatform.portal.application;
 
+import org.exoplatform.Constants;
 import org.exoplatform.web.application.Parameter;
 import org.exoplatform.web.application.URLBuilder;
 import org.exoplatform.webui.core.UIComponent;
 import org.exoplatform.webui.url.ComponentURL;
-
-import java.util.Map;
 
 /**
  * Created by The eXo Platform SAS
@@ -79,6 +78,39 @@ public class PortalURLBuilder extends URLBuilder<UIComponent>
          }
       }
 
+      //
+      if (removeLocale)
+      {
+         url.setLocale(null);
+      }
+      else if (locale != null)
+      {
+         url.setLocale(locale);
+      }
+
+      //
+      return url.toString();
+   }
+   
+   public String createResourceURL(UIComponent targetComponent, String targetBeanId, Parameter[] params)
+   {
+      url.reset();
+      
+      url.setResource(targetComponent);
+
+      //
+      url.setQueryParameterValue(Constants.TYPE_PARAMETER, Constants.PORTAL_SERVE_RESOURCE);
+      url.setQueryParameterValue(Constants.RESOURCE_ID_PARAMETER, targetBeanId);
+
+      //
+      if (params != null)
+      {
+         for (Parameter param : params)
+         {
+            url.setQueryParameterValue(param.getName(), param.getValue());
+         }
+      }
+      
       //
       if (removeLocale)
       {

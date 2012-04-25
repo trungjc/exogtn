@@ -131,22 +131,5 @@ abstract public class UIPortletApplication extends UIApplication
          }
       }
       super.processRender(context);
-   }
-
-   /**
-    * Root uicomponent of a portlet can override this method to leverage serveResource that JSR286 offers by itself
-    * @param context - WebUI context
-    */
-   public void serveResource(WebuiRequestContext context) throws Exception
-   {
-      String componentId = context.getRequestParameter(context.getUIComponentIdParameterName());
-      if (componentId != null)
-      {
-         UIComponent uiTarget = findComponentById(componentId);
-         if (uiTarget != null && uiTarget != this)
-         {
-            ((ResourceServingComponent)uiTarget).serveResource(context);
-         }
-      }
-   }
+   }  
 }

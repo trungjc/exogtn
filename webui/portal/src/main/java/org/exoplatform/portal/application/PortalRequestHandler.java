@@ -19,12 +19,21 @@
 
 package org.exoplatform.portal.application;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.util.List;
+import java.util.Locale;
+
+import org.exoplatform.Constants;
 import org.exoplatform.commons.utils.I18N;
 import org.exoplatform.commons.utils.Safe;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.StaleModelException;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.exoplatform.portal.webui.application.UIPortlet;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.web.ControllerContext;
@@ -37,13 +46,7 @@ import org.exoplatform.web.application.RequestFailure;
 import org.exoplatform.web.controller.QualifiedName;
 import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.core.UIApplication;
-
-import java.util.List;
-import java.util.Locale;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.exoplatform.webui.core.UIComponent;
 
 /**
  * Created by The eXo Platform SAS
@@ -182,18 +185,28 @@ public class PortalRequestHandler extends WebRequestHandler
             uiApp.processDecode(context);
          }
          
-         if (!context.isResponseComplete() && !context.getProcessRender())
-         {
-            startRequestPhaseLifecycle(app, context, lifecycles, Phase.ACTION);
-            uiApp.processAction(context);
-            endRequestPhaseLifecycle(app, context, lifecycles, Phase.ACTION);
+         String targetId = context.getRequestParameter(context.getUIComponentIdParameterName());
+         //This is a workaround, currently UIPortlet don't use action name to invorke it webui actions
+         if (Constants.PORTAL_SERVE_RESOURCE.equals(context.getRequestParameter(Constants.TYPE_PARAMETER)) &&
+                  !(targetId != null && uiApp.findComponentById(targetId) instanceof UIPortlet)) 
+         {            
+            uiApp.serveResource(context);            
          }
-
-         if (!context.isResponseComplete())
+         else 
          {
-            startRequestPhaseLifecycle(app, context, lifecycles, Phase.RENDER);
-            uiApp.processRender(context);
-            endRequestPhaseLifecycle(app, context, lifecycles, Phase.RENDER);
+            if (!context.isResponseComplete() && !context.getProcessRender())
+            {
+               startRequestPhaseLifecycle(app, context, lifecycles, Phase.ACTION);
+               uiApp.processAction(context);
+               endRequestPhaseLifecycle(app, context, lifecycles, Phase.ACTION);
+            }
+            
+            if (!context.isResponseComplete())
+            {
+               startRequestPhaseLifecycle(app, context, lifecycles, Phase.RENDER);
+               uiApp.processRender(context);
+               endRequestPhaseLifecycle(app, context, lifecycles, Phase.RENDER);
+            }            
          }
 
          if (uiApp != null)

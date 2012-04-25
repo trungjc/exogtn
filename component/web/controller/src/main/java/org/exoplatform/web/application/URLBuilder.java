@@ -90,10 +90,7 @@ abstract public class URLBuilder<T>
       return createAjaxURL(targetComponent, action, confirm, targetBeanId, (Parameter[])null);
    }
 
-   public String createResourceURL(T targetComponent, String targetBeanId, Parameter[] params) 
-   {
-      return null;
-   }
+   public abstract String createResourceURL(T targetComponent, String targetBeanId, Parameter[] params);
    
    public abstract String createAjaxURL(T targetComponent, String action, String confirm, String targetBeanId, Parameter[] params);
 

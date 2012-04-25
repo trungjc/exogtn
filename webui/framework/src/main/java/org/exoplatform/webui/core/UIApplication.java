@@ -143,6 +143,25 @@ abstract public class UIApplication extends UIContainer
       }
    }
 
+   /**
+    * By default, UIApplication will delegate serveResource action to its childrens
+    * Override this method to serve resource your self
+    * @param context - WebUI context
+    */
+   public void serveResource(WebuiRequestContext context) throws Exception
+   {
+      String componentId = context.getRequestParameter(context.getUIComponentIdParameterName());
+      if (componentId != null)
+      {
+         UIComponent uiTarget = findComponentById(componentId);
+         if (uiTarget != null && uiTarget != this)
+         {
+            uiTarget.processDecode(context);
+            ((ResourceServingComponent)uiTarget).serveResource(context);
+         }
+      }
+   }
+   
    public void renderBlockToUpdate(UIComponent uicomponent, WebuiRequestContext context, Writer w) throws Exception
    {
       w.write("<div class=\"BlockToUpdate\">");
