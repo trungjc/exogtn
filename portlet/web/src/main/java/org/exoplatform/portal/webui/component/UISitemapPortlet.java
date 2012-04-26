@@ -90,6 +90,7 @@ public class UISitemapPortlet extends UIPortletApplication
       public void execute(Event<UISitemapPortlet> event) throws Exception
       {
          UISiteMapTree sitemapTree = event.getSource().getChild(UISiteMapTree.class);
+         sitemapTree.reset();
          event.getRequestContext().addUIComponentToUpdateByAjax(sitemapTree);
       }
    }

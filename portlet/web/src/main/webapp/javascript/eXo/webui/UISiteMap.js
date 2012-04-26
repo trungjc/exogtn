@@ -19,23 +19,38 @@
 
 function UISiteMap() {};
 
-UISiteMap.prototype.updateTreeNode = function (nodeToUpdate, getNodeURL) {
-	if (!nodeToUpdate || ! getNodeURL) return;
+UISiteMap.prototype.updateTreeNode = function (nodeToUpdate, getNodeURL, collapseURL, doExpand) {
+	if (!nodeToUpdate || !getNodeURL || !collapseURL) return;
 	
-	var subGroup = eXo.core.DOMUtil.findFirstChildByClass(nodeToUpdate.parentNode, "div", "ChildrenContainer") ;
-	if (!subGroup || subGroup.innerHTML.trim() !== "") return;	
+	nodeToUpdate.onclick = function() {
+		eXo.portal.UIPortal.collapseExpand(nodeToUpdate);
+		eXo.webui.UISiteMap.updateTreeNode(nodeToUpdate, getNodeURL, collapseURL, !doExpand);
+	};
+	
+	if (doExpand) {
+		var subGroup = eXo.core.DOMUtil.findFirstChildByClass(nodeToUpdate.parentNode, "div", "ChildrenContainer");
 		
-	var jsChilds = ajaxAsyncGetRequest(getNodeURL, false);	
-	try {
-		var data = eXo.core.JSON.parse(jsChilds);				
-	} catch (e) {		
+		var jsChilds = ajaxAsyncGetRequest(getNodeURL, false);	
+		if (jsChilds) {
+			try {
+				var data = eXo.core.JSON.parse(jsChilds);
+				if (data) {
+					if (data.msg) {
+						alert(data.msg);
+						window.location.reload();
+					} else if (data.length) {
+						eXo.webui.UISiteMap.generateHtml(data, nodeToUpdate, subGroup);									
+					} else {
+						eXo.core.DOMUtil.removeClass(nodeToUpdate, "CollapseIcon");
+				        eXo.core.DOMUtil.addClass(nodeToUpdate, "NullItem");
+					}
+				}
+			} catch (e) {					
+			}	
+		}
+	} else {
+		ajaxAsyncGetRequest(collapseURL, true);		
 	}	
-	if (data && data.length) {
-		eXo.webui.UISiteMap.generateHtml(data, nodeToUpdate, subGroup);			
-		return;
-	}
-	eXo.core.DOMUtil.removeClass(nodeToUpdate, "CollapseIcon");
-	eXo.core.DOMUtil.addClass(nodeToUpdate, "NullItem");
 };
 
 UISiteMap.prototype.generateHtml = function(data, nodeToUpdate, subGroup) {						
@@ -44,8 +59,8 @@ UISiteMap.prototype.generateHtml = function(data, nodeToUpdate, subGroup) {
 		var lastNode = isLast ? "LastNode" : "";
 		var actionLink = node.actionLink ? node.actionLink : "javascript:void(0);";
 		
-		var actionExpand = 'eXo.webui.UISiteMap.updateTreeNode(this, "' + node.getNodeURL + '")';
-		var actionCollapse = 'ajaxAsyncGetRequest("' + node.collapseURL + '", true)'; 		 
+		var actionExpand = 'eXo.webui.UISiteMap.updateTreeNode(this, "' + node.getNodeURL + '","' + node.collapseURL + '", true)';
+		var actionCollapse = 'eXo.webui.UISiteMap.updateTreeNode(this, "' + node.getNodeURL + '","' + node.collapseURL + '", false)'; 		 
 			
 		var str = "";			
 		if (node.hasChild) {

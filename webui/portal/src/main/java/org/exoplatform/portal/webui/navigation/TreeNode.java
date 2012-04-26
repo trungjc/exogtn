@@ -81,22 +81,34 @@ public class TreeNode
       return children_;
    }
 
-   public int getChildrenSize()
-   {
-      return children_.size();
-   }
-
    public void setChildren(Collection<UserNode> children) throws Exception
    {
       if (children == null)
          return;
-                                   
-      children_ = new LinkedList<TreeNode>();      
+                                         
+      List<TreeNode> oldChildren = children_;
+      children_ = new LinkedList<TreeNode>();               
       for (UserNode child : children)
       {
-         TreeNode node = new TreeNode(child, rootNode);
+         TreeNode node = rootNode.cachedTreeNodes_.get(child.getId());
+         if (node == null)
+         {
+            node = new TreeNode(child, rootNode);            
+            rootNode.cachedTreeNodes_.put(child.getId(), node);         
+         }
+         else
+         {
+            node.node_ = child;
+            node.setChildren(child.getChildren());
+         }
+         
          children_.add(node);
-         rootNode.cachedTreeNodes_.put(child.getId(), node);         
+      }
+      //Clean the cache
+      oldChildren.removeAll(children_);
+      for (TreeNode node : oldChildren)
+      {
+         rootNode.cachedTreeNodes_.remove(node.getNode().getId());
       }
    }
 

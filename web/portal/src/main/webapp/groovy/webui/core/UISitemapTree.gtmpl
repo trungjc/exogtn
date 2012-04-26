@@ -6,6 +6,7 @@
 	import javax.portlet.ResourceURL;
 	import org.exoplatform.webui.application.WebuiRequestContext;
 	import org.exoplatform.webui.application.portlet.PortletURLBuilder;
+	import org.exoplatform.web.application.Parameter;
 
 	WebuiRequestContext pcontext = _ctx.getRequestContext();
 	JavascriptManager jsmanager = pcontext.getJavascriptManager();
@@ -38,8 +39,14 @@
 			// if node have child
 
 			if(treeNode.hasChild()) {
+			   def params = new Parameter[1];
+			   params[0] = new Parameter(uicomponent.SITE_MAP_OP, uicomponent.EXPAND_NODE);
+				def expandURL = uicomponent.resourceURL(treePath, params);
+				def collapseURL = uicomponent.resourceURL(treePath);
+				
 				if (treeNode.isExpanded()) {
-				    def actionCollapse = "ajaxAsyncGetRequest('" + uicomponent.url("CollapseNode", treePath) + "', true)";
+				   def actionCollapse = "eXo.webui.UISiteMap.updateTreeNode(this, '" + 
+					         expandURL + "','" + collapseURL + "', false)";
 					println """
 						<div class="$lastNode Node">
 							<div class="CollapseIcon ClearFix" onclick="eXo.portal.UIPortal.collapseExpand(this); $actionCollapse">
@@ -50,12 +57,11 @@
 							<div class="ChildrenContainer" style="display: block">
 					""";
 					
-					renderNodes(treeNode, nodeURL, useAjax);
+					renderNodes(treeNode, nodeURL);
 					
-				} else {
-					def resourceURL = uicomponent.resourceURL(treePath);					
-					def actionExpand = "eXo.webui.UISiteMap.updateTreeNode(this, '" + resourceURL + "')";	
-					
+				} else {				   				
+					def actionExpand = "eXo.webui.UISiteMap.updateTreeNode(this, '" + 
+					         expandURL + "','" + collapseURL + "', true)";						
 					println """
 						<div class="$lastNode Node">
 							<div class="ExpandIcon ClearFix" onclick="eXo.portal.UIPortal.collapseExpand(this); $actionExpand">

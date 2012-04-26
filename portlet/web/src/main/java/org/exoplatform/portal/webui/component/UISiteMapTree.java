@@ -39,16 +39,14 @@ import org.exoplatform.portal.webui.navigation.TreeNode;
 import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.web.application.Parameter;
 import org.exoplatform.web.url.navigation.NavigationResource;
 import org.exoplatform.web.url.navigation.NodeURL;
 import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.application.portlet.PortletRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
-import org.exoplatform.webui.config.annotation.EventConfig;
 import org.exoplatform.webui.core.ResourceServingComponent;
 import org.exoplatform.webui.core.UIComponent;
-import org.exoplatform.webui.event.Event;
-import org.exoplatform.webui.event.EventListener;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -57,10 +55,13 @@ import org.json.JSONObject;
  * @version $Id$
  * 
  */
-@ComponentConfig(template = "system:/groovy/webui/core/UISitemapTree.gtmpl", events = {
-   @EventConfig(listeners = UISiteMapTree.CollapseNodeActionListener.class)})
+@ComponentConfig(template = "system:/groovy/webui/core/UISitemapTree.gtmpl")
 public class UISiteMapTree extends UIComponent implements ResourceServingComponent
 {
+   public static String SITE_MAP_OP = "sitemapOp";
+   public static String EXPAND_NODE = "expand";
+   public static String COLLAPSE_NODE = "collapse";
+   
    private boolean useAJAX = true;
 
    private boolean showUserNavigation = true;
@@ -99,39 +100,52 @@ public class UISiteMapTree extends UIComponent implements ResourceServingCompone
    public void setShowUserNavigation(boolean showUserNavigation)
    {
       this.showUserNavigation = showUserNavigation;
-   }
+   }   
    
    public void loadTreeNodes() throws Exception
    {
-      treeNode_ = new TreeNode();
-
       UserPortal userPortal = Util.getPortalRequestContext().getUserPortalConfig().getUserPortal();
-      List<UserNavigation> listNavigations = userPortal.getNavigations();
-
       List<UserNode> childNodes = new LinkedList<UserNode>();
-      for (UserNavigation nav : rearrangeNavigations(listNavigations))
+      if (treeNode_ == null)
       {
-         if (!showUserNavigation && nav.getKey().getType().equals(SiteType.USER))
+         treeNode_ = new TreeNode();         
+         List<UserNavigation> listNavigations = userPortal.getNavigations();
+         
+         for (UserNavigation nav : rearrangeNavigations(listNavigations))
          {
-            continue;
-         }
-         try
-         {
-            UserNode rootNode = userPortal.getNode(nav, navigationScope, NAVIGATION_FILTER_CONFIG, null);
-            if (rootNode != null)
+            if (!showUserNavigation && nav.getKey().getType().equals(SiteType.USER))
             {
-               childNodes.addAll(rootNode.getChildren());
+               continue;
+            }
+            try
+            {
+               UserNode rootNode = userPortal.getNode(nav, navigationScope, NAVIGATION_FILTER_CONFIG, null);
+               if (rootNode != null)
+               {
+                  childNodes.addAll(rootNode.getChildren());
+               }
+            }
+            catch (Exception ex)
+            {
+               log.error(ex.getMessage(), ex);
             }
          }
-         catch (Exception ex)
+      }
+      else
+      {
+         for (TreeNode child : treeNode_.getChildren())
          {
-            log.error(ex.getMessage(), ex);
+            UserNode usrNode = updateNode(child.getNode());
+            if (usrNode != null)
+            {
+               childNodes.add(usrNode);
+            }
          }
       }
       treeNode_.setChildren(childNodes);
    }
 
-   public UserNode updateNode(UserNode node) throws Exception
+   private UserNode updateNode(UserNode node) throws Exception
    {
       if (node == null)
       {
@@ -139,43 +153,18 @@ public class UISiteMapTree extends UIComponent implements ResourceServingCompone
       }
       UserPortal userPortal = Util.getPortalRequestContext().getUserPortalConfig().getUserPortal();
       NodeChangeQueue<UserNode> queue = new NodeChangeQueue<UserNode>();
-      userPortal.updateNode(node, navigationScope, queue);
+      userPortal.rebaseNode(node, navigationScope, queue);      
       for (NodeChange<UserNode> change : queue)
       {
-         if (change instanceof NodeChange.Removed)
+         if (!(change instanceof NodeChange.Added) && change.getTarget().getId().equals(node.getId()))
          {
-            UserNode deletedNode = ((NodeChange.Removed<UserNode>)change).getTarget();
-            if (hasRelationship(deletedNode, node))
-            {
-               // Node has been deleted
-               return null;
-            }
+            return null;
          }
       }
+      
       return node;
    }
 
-   private boolean hasRelationship(UserNode parent, UserNode userNode)
-   {
-      if (parent.getId().equals(userNode.getId()))
-      {
-         return true;
-      }
-      for (UserNode child : parent.getChildren())
-      {
-         if (hasRelationship(child, userNode))
-         {
-            return true;
-         }
-      }
-      return false;
-   }
-
-   /**
-    * 
-    * @param listNavigation
-    * @return
-    */
    private List<UserNavigation> rearrangeNavigations(List<UserNavigation> listNavigation)
    {
       List<UserNavigation> returnNavs = new ArrayList<UserNavigation>();
@@ -208,6 +197,11 @@ public class UISiteMapTree extends UIComponent implements ResourceServingCompone
       return returnNavs;
    }
 
+   public void reset()
+   {
+      treeNode_ = null;
+   }
+   
    public TreeNode getTreeNodes()
    {
       return treeNode_;
@@ -222,41 +216,51 @@ public class UISiteMapTree extends UIComponent implements ResourceServingCompone
    public void serveResource(WebuiRequestContext context) throws Exception
    {      
       ResourceRequest req = context.getRequest();
-      String nodeID = req.getResourceID();
-            
-      JSONArray jsChilds = getChildrenAsJSON(nodeID);
-      if (jsChilds == null)
+      String siteMapOp = req.getParameter(SITE_MAP_OP);
+      if (EXPAND_NODE.equals(siteMapOp))
       {
-         return;
+         expandNode(context);         
       }
-      
-      MimeResponse res = context.getResponse(); 
-      res.setContentType("text/json");
-      res.getWriter().write(jsChilds.toString());
+      else
+      {
+         collapseNode(context);
+      }
    }
 
-   private JSONArray getChildrenAsJSON(String nodeID) throws Exception
-   {            
-      WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();   
-      List<TreeNode> childs = null;
-      
+   private void expandNode(WebuiRequestContext context) throws Exception
+   {      
+      ResourceRequest req = context.getRequest();
+      String nodeID = req.getResourceID();
       TreeNode tnode = getTreeNodes().findNodes(nodeID);              
       if (tnode != null) 
       {
-         UserNode userNode = updateNode(tnode.getNode());
-         if (userNode != null)
+         tnode.setExpanded(true);     
+         if (tnode.getChildren().size() == 0) 
          {
-            tnode.setExpanded(true);     
-            tnode.setChildren(userNode.getChildren());          
-            childs = tnode.getChildren();
+            UserNode userNode = updateNode(tnode.getNode());
+            MimeResponse res = context.getResponse();
+            res.setContentType("text/json");
+            if (userNode != null)
+            {
+               tnode.setChildren(userNode.getChildren());          
+               JSONArray jsChilds = getChildrenAsJSON(tnode.getChildren());
+               res.getWriter().write(jsChilds.toString());                        
+            }
+            else
+            {
+               JSONObject test = new JSONObject();
+               test.put("msg", "Stale data, click OK to refresh browser");
+               res.getWriter().write(test.toString());
+            }
          }
-      }
+      }      
+   }
+
+   private JSONArray getChildrenAsJSON(List<TreeNode> childs) throws Exception
+   {                  
+      WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();   
       
       JSONArray jsChilds = new JSONArray();
-      if (childs == null)
-      {
-         return null;
-      }                  
       MimeResponse res = context.getResponse();
       for (TreeNode child : childs)
       {
@@ -267,6 +271,7 @@ public class UISiteMapTree extends UIComponent implements ResourceServingCompone
 
    private JSONObject toJSON(TreeNode tnode, MimeResponse res) throws Exception
    {
+      PortletRequestContext pcontext = WebuiRequestContext.<PortletRequestContext>getCurrentInstance();
       JSONObject json = new JSONObject();
       UserNode node = tnode.getNode();
       String nodeId = node.getId();
@@ -274,10 +279,9 @@ public class UISiteMapTree extends UIComponent implements ResourceServingCompone
       json.put("label", node.getEncodedResolvedLabel());      
       json.put("hasChild", tnode.hasChild());            
       json.put("isExpanded", tnode.isExpanded());
-      json.put("collapseURL", url("CollapseNode", nodeId));  
+      json.put("collapseURL", resourceURL(nodeId));  
       
-      PortletRequestContext pcontext = WebuiRequestContext.<PortletRequestContext>getCurrentInstance();
-      String rsURL = resourceURL(nodeId);      
+      String rsURL = resourceURL(nodeId, new Parameter[] {new Parameter(SITE_MAP_OP, EXPAND_NODE)});      
       json.put("getNodeURL", rsURL);            
       
       if (node.getPageRef() != null)
@@ -296,24 +300,17 @@ public class UISiteMapTree extends UIComponent implements ResourceServingCompone
       json.put("childs", childs);
       return json;
    }   
-   
-   static public class CollapseNodeActionListener extends EventListener<UISiteMapTree>
+
+   private void collapseNode(WebuiRequestContext context) throws Exception
    {
-      public void execute(Event<UISiteMapTree> event) throws Exception
+      ResourceRequest req = context.getRequest();
+      String treePath = req.getResourceID();
+      TreeNode rootNode = getTreeNodes();
+
+      TreeNode collapseTree = rootNode.findNodes(treePath);
+      if (collapseTree != null)
       {
-         // get URI
-         String treePath = event.getRequestContext().getRequestParameter(OBJECTID);
-
-         UISiteMapTree uiNavigation = event.getSource();
-         TreeNode rootNode = uiNavigation.getTreeNodes();
-
-         TreeNode collapseTree = rootNode.findNodes(treePath);
-         if (collapseTree != null)
-         {
-            collapseTree.setExpanded(false);
-         }
-
-         Util.getPortalRequestContext().setResponseComplete(true);
+         collapseTree.setExpanded(false);
       }
    }
 }
