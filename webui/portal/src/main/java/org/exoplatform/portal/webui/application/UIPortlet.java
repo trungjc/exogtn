@@ -20,6 +20,7 @@
 package org.exoplatform.portal.webui.application;
 
 import org.exoplatform.Constants;
+import org.exoplatform.commons.utils.Safe;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.application.UserProfileLifecycle;
@@ -35,7 +36,6 @@ import org.exoplatform.portal.webui.application.UIPortletActionListener.EditPort
 import org.exoplatform.portal.webui.application.UIPortletActionListener.ProcessActionActionListener;
 import org.exoplatform.portal.webui.application.UIPortletActionListener.ProcessEventsActionListener;
 import org.exoplatform.portal.webui.application.UIPortletActionListener.RenderActionListener;
-import org.exoplatform.portal.webui.application.UIPortletActionListener.ServeResourceActionListener;
 import org.exoplatform.portal.webui.portal.UIPortal;
 import org.exoplatform.portal.webui.portal.UIPortalComponentActionListener.DeleteComponentActionListener;
 import org.exoplatform.portal.webui.util.Util;
@@ -47,11 +47,14 @@ import org.exoplatform.web.application.RequestContext;
 import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.EventConfig;
+import org.exoplatform.webui.core.ResourceServingComponent;
 import org.exoplatform.webui.event.Event.Phase;
 import org.gatein.common.i18n.LocalizedString;
 import org.gatein.common.net.media.MediaType;
+import org.gatein.common.util.MultiValuedPropertyMap;
 import org.gatein.common.util.ParameterValidation;
 import org.gatein.pc.api.Mode;
+import org.gatein.pc.api.ParametersStateString;
 import org.gatein.pc.api.PortletContext;
 import org.gatein.pc.api.PortletInvoker;
 import org.gatein.pc.api.PortletInvokerException;
@@ -69,7 +72,10 @@ import org.gatein.pc.api.invocation.EventInvocation;
 import org.gatein.pc.api.invocation.PortletInvocation;
 import org.gatein.pc.api.invocation.RenderInvocation;
 import org.gatein.pc.api.invocation.ResourceInvocation;
+import org.gatein.pc.api.invocation.response.ContentResponse;
+import org.gatein.pc.api.invocation.response.ErrorResponse;
 import org.gatein.pc.api.invocation.response.PortletInvocationResponse;
+import org.gatein.pc.api.invocation.response.ResponseProperties;
 import org.gatein.pc.api.state.AccessMode;
 import org.gatein.pc.api.state.PropertyChange;
 import org.gatein.pc.portlet.impl.spi.AbstractClientContext;
@@ -80,10 +86,15 @@ import org.gatein.pc.portlet.impl.spi.AbstractServerContext;
 import org.gatein.pc.portlet.impl.spi.AbstractWindowContext;
 
 import javax.portlet.PortletMode;
+import javax.portlet.ResourceResponse;
 import javax.portlet.WindowState;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.QName;
+
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,9 +117,8 @@ import java.util.UUID;
    @EventConfig(listeners = DeleteComponentActionListener.class, confirm = "UIPortlet.deletePortlet"),
    @EventConfig(listeners = EditPortletActionListener.class),
    @EventConfig(phase = Phase.PROCESS, listeners = ProcessActionActionListener.class),
-   @EventConfig(phase = Phase.PROCESS, listeners = ServeResourceActionListener.class),
    @EventConfig(phase = Phase.PROCESS, listeners = ProcessEventsActionListener.class)})
-public class UIPortlet<S, C extends Serializable> extends UIApplication
+public class UIPortlet<S, C extends Serializable> extends UIApplication implements ResourceServingComponent
 {
 
    protected static final Log log = ExoLogger.getLogger("portal:UIPortlet");
@@ -1045,7 +1055,193 @@ public class UIPortlet<S, C extends Serializable> extends UIApplication
          currentPortlet.set(null);
       }
    }
+   
+   /**
+    * The serveResource() method defined in the JSR 286 specs has several goals: - provide binary output like images to
+    * be displayed in the portlet (in the previous spec - JSR 168 - a servlet was needed) - provide text output that
+    * does not impact the entire portal rendering, it is for instance usefull when dealing with Javascript to return
+    * some JSON structures
+    * <p/>
+    * The method delegates the call to the portlet container serverResource method after filling the ResourceInput
+    * object with the current request state.
+    * <p/>
+    * This returns a ResourceOutput object that can content binary or text contentType
+    * <p/>
+    * Finally the content is set in the portal response writer or outputstream depending on the type;
+    */
+   @Override
+   public void serveResource(WebuiRequestContext context) throws Exception
+   {
+      log.trace("Serve Resource for portlet: " + getPortletContext());
+      String resourceId = null;
 
+      //
+      PortalRequestContext pcontext = (PortalRequestContext)context;
+      HttpServletResponse response = context.getResponse();
+
+      //
+      try
+      {
+         //Set the NavigationalState
+         String navState = context.getRequestParameter(ExoPortletInvocationContext.NAVIGATIONAL_STATE_PARAM_NAME);
+         if (navState != null)
+         {
+            setNavigationalState(ParametersStateString.create(navState));
+         }
+
+         //
+         ResourceInvocation resourceInvocation = create(ResourceInvocation.class, (PortalRequestContext)context);
+
+         // set the resourceId to be used in case of a problem
+         resourceId = resourceInvocation.getResourceId();
+
+         //
+         PortletInvocationResponse portletResponse = invoke(resourceInvocation);
+
+         //
+         int statusCode;
+         MultiValuedPropertyMap<String> transportHeaders;
+         String contentType;
+         Object content;
+         if (!(portletResponse instanceof ContentResponse))
+         {
+            if (portletResponse instanceof ErrorResponse)
+            {
+               ErrorResponse errorResponse = (ErrorResponse)portletResponse;
+               Throwable cause = errorResponse.getCause();
+               if (cause != null)
+               {
+                  log.trace("Got error response from portlet", cause);
+               }
+               else if (errorResponse.getMessage() != null)
+               {
+                  log.trace("Got error response from portlet:" + errorResponse.getMessage());
+               }
+               else
+               {
+                  log.trace("Got error response from portlet");
+               }
+            }
+            else
+            {
+               log.trace("Unexpected response type [" + portletResponse + "]. Expected a ContentResponse or an ErrorResponse.");
+            }
+            statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+            contentType = null;
+            transportHeaders = null;
+            content = null;
+         }
+         else
+         {
+            //
+            ContentResponse piResponse = (ContentResponse)portletResponse;
+            ResponseProperties properties = piResponse.getProperties();
+            transportHeaders = properties != null ? properties.getTransportHeaders() : null;
+
+            // Look at status code if there is one and honour it
+            String status = transportHeaders != null ? transportHeaders.getValue(ResourceResponse.HTTP_STATUS_CODE) : null;
+            if (status != null)
+            {
+               try
+               {
+                  statusCode = Integer.parseInt(status);
+               }
+               catch (NumberFormatException e)
+               {
+                  statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+               }
+            }
+            else
+            {
+               statusCode = HttpServletResponse.SC_OK;
+            }
+
+            //
+            contentType = piResponse.getContentType();
+
+            //
+            log.trace("Try to get a resource of type: " + contentType + " for the portlet: " + getPortletContext());
+            if (piResponse.getChars() != null)
+            {
+               content = piResponse.getChars();
+            }
+            else if (piResponse.getBytes() != null)
+            {
+               content = piResponse.getBytes();
+            }
+            else
+            {
+               content = null;
+            }
+         }
+
+         //
+         response.setStatus(statusCode);
+
+         // Set content type if any
+         if (contentType != null)
+         {
+            response.setContentType(contentType);
+         }
+
+         // Send headers if any
+         if (transportHeaders != null)
+         {
+            sendHeaders(transportHeaders, pcontext);
+         }
+
+         // Send body if any
+         if (content instanceof String)
+         {
+            context.getWriter().write((String)content);
+         }
+         else if (content instanceof byte[])
+         {
+            byte[] bytes = (byte[]) content;
+            response.setContentLength(bytes.length);
+            OutputStream stream = response.getOutputStream();
+            try
+            {
+               stream.write(bytes);
+            }
+            finally
+            {
+               Safe.close(stream);
+            }
+         }
+
+         //
+         response.flushBuffer();
+      }
+      catch (Exception e)
+      {
+         log.error("Problem while serving resource " + (resourceId != null ? resourceId : "") + " for the portlet: " + getPortletContext().getId(), e);
+      }
+   }
+
+   /**
+    * Send any header to the client
+    *
+    * @param headers the headers
+    * @param context the context
+    * @throws IOException any io exception
+    */
+   private void sendHeaders(MultiValuedPropertyMap<String> headers, PortalRequestContext context) throws IOException
+   {
+      Map<String, String> map = new HashMap<String, String>();
+      for (String key : headers.keySet())
+      {
+         for (String value : headers.getValues(key))
+         {
+            map.put(key, value);
+         }
+      }
+
+      // We need to remove it if it there
+      map.remove(ResourceResponse.HTTP_STATUS_CODE);
+      context.setHeaders(map);
+   }
+   
    void setNavigationalState(StateString navigationalState)
    {
       this.navigationalState = navigationalState;

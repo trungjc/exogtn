@@ -156,7 +156,6 @@ abstract public class UIApplication extends UIContainer
          UIComponent uiTarget = findComponentById(componentId);
          if (uiTarget != null && uiTarget != this)
          {
-            uiTarget.processDecode(context);
             ((ResourceServingComponent)uiTarget).serveResource(context);
          }
       }

@@ -131,13 +131,7 @@ public class UIPortletLifecycle<S, C extends Serializable, I> extends Lifecycle<
                Event<UIComponent> event = uicomponent.createEvent("ProcessAction", Event.Phase.PROCESS, context);
                if (event != null)
                   event.broadcast();
-            }
-            else if (portletActionType.equals(Constants.PORTAL_SERVE_RESOURCE))
-            {
-               Event<UIComponent> event = uicomponent.createEvent("ServeResource", Event.Phase.PROCESS, context);
-               if (event != null)
-                  event.broadcast();
-            }
+            }            
          }
          else
          {

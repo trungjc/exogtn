@@ -180,20 +180,21 @@ public class PortalRequestHandler extends WebRequestHandler
          if (context.getUIApplication() != uiApp)
             context.setUIApplication(uiApp);
          
-         if (uiApp != null)
+         if (uiApp == null)
          {
-            uiApp.processDecode(context);
+            log.error("Can't restore or create new ui root component, check your webui-configuration.xml");
+            return;
          }
          
-         String targetId = context.getRequestParameter(context.getUIComponentIdParameterName());
-         //This is a workaround, currently UIPortlet don't use action name to invorke it webui actions
-         if (Constants.PORTAL_SERVE_RESOURCE.equals(context.getRequestParameter(Constants.TYPE_PARAMETER)) &&
-                  !(targetId != null && uiApp.findComponentById(targetId) instanceof UIPortlet)) 
+         String actionType = context.getRequestParameter(Constants.TYPE_PARAMETER);
+         if (Constants.PORTAL_SERVE_RESOURCE.equals(actionType)) 
          {            
             uiApp.serveResource(context);            
          }
          else 
          {
+            uiApp.processDecode(context);
+            
             if (!context.isResponseComplete() && !context.getProcessRender())
             {
                startRequestPhaseLifecycle(app, context, lifecycles, Phase.ACTION);
