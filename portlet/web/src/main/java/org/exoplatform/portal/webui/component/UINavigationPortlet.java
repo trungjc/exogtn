@@ -19,28 +19,18 @@
 
 package org.exoplatform.portal.webui.component;
 
-import java.util.Collection;
-
-import javax.portlet.MimeResponse;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
-import javax.portlet.ResourceRequest;
 
 import org.exoplatform.portal.mop.navigation.GenericScope;
 import org.exoplatform.portal.mop.navigation.Scope;
-import org.exoplatform.portal.mop.user.UserNode;
-import org.exoplatform.web.url.navigation.NodeURL;
-import org.exoplatform.web.url.navigation.NavigationResource;
 import org.exoplatform.portal.webui.navigation.UIPortalNavigation;
-import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.application.portlet.PortletRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.ComponentConfigs;
 import org.exoplatform.webui.core.UIPortletApplication;
 import org.exoplatform.webui.core.lifecycle.UIApplicationLifecycle;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 @ComponentConfigs({
    @ComponentConfig(lifecycle = UIApplicationLifecycle.class),
@@ -81,84 +71,7 @@ public class UINavigationPortlet extends UIPortletApplication
       {
          portalNavigation.setScope(GenericScope.treeShape(level));
       }
-   }
-
-   @Override
-   public void serveResource(WebuiRequestContext context) throws Exception
-   {
-      super.serveResource(context);
-      
-      ResourceRequest req = context.getRequest();
-      String nodeURI = req.getResourceID();
-            
-      JSONArray jsChilds = getChildrenAsJSON(nodeURI);
-      if (jsChilds == null)
-      {
-         return;
-      }
-      
-      MimeResponse res = context.getResponse(); 
-      res.setContentType("text/json");
-      res.getWriter().write(jsChilds.toString());
-   }      
-   
-
-   public JSONArray getChildrenAsJSON(String nodeURI) throws Exception
-   {
-      WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();          
-      UIPortalNavigation uiPortalNavigation = getChild(UIPortalNavigation.class);
-      
-      Collection<UserNode> childs = null;      
-      UserNode userNode = uiPortalNavigation.resolvePath(nodeURI);
-      if (userNode != null)
-      {
-         childs = userNode.getChildren();
-      }
-      
-      JSONArray jsChilds = new JSONArray();
-      if (childs == null)
-      {
-         return null;
-      }                  
-      MimeResponse res = context.getResponse();
-      for (UserNode child : childs)
-      {
-         jsChilds.put(toJSON(child, res, uiPortalNavigation));
-      }
-      return jsChilds;
-   }
-
-   private JSONObject toJSON(UserNode node, MimeResponse res, UIPortalNavigation uiPortalNavigation) throws Exception
-   {
-      JSONObject json = new JSONObject();
-      String nodeId = node.getId();
-
-      json.put("label", node.getEncodedResolvedLabel());
-      json.put("hasChild", node.getChildrenCount() > 0);
-
-      UserNode selectedNode = Util.getUIPortal().getNavPath();
-      json.put("isSelected", nodeId.equals(selectedNode.getId()));
-      json.put("icon", node.getIcon());
-
-      String resourceURL = uiPortalNavigation.createServeResourceURL(node.getURI());
-      json.put("getNodeURL", resourceURL);
-
-      if (node.getPageRef() != null)
-      {
-         NavigationResource resource = new NavigationResource(node);
-         NodeURL url = Util.getPortalRequestContext().createURL(NodeURL.TYPE, resource);
-         url.setAjax(isUseAjax());
-         json.put("actionLink", url.toString());
-      }
-
-      JSONArray childs = new JSONArray();
-      for (UserNode child : node.getChildren())
-      {
-         childs.put(toJSON(child, res, uiPortalNavigation));
-      }
-      json.put("childs", childs);
-      return json;
-   }
+   }   
 
    public boolean isUseAjax()
    {

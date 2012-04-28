@@ -254,6 +254,21 @@ public class PortletApplication extends WebuiApplication
       }
       finally
       {
+         // Close the writer
+         Safe.close(context.getWriter());
+
+         //
+         try
+         {
+            for (ApplicationLifecycle<RequestContext> lifecycle : getApplicationLifecycle())
+            {
+               lifecycle.onEndRequest(this, context);
+            }
+         }
+         catch (Exception exception)
+         {
+            log.error("Error while trying to call onEndRequest of the portlet ApplicationLifecycle", exception);
+         }         
          WebuiRequestContext.setCurrentInstance(parentAppRequestContext);
       }
    }

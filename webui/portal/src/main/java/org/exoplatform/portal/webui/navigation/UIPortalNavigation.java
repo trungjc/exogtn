@@ -19,14 +19,12 @@
 
 package org.exoplatform.portal.webui.navigation;
 
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import javax.portlet.MimeResponse;
-import javax.portlet.ResourceURL;
+import javax.portlet.ResourceRequest;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.exoplatform.portal.mop.SiteType;
 import org.exoplatform.portal.mop.Visibility;
@@ -41,22 +39,23 @@ import org.exoplatform.portal.webui.portal.UIPortal;
 import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.web.url.navigation.NavigationResource;
+import org.exoplatform.web.url.navigation.NodeURL;
 import org.exoplatform.webui.application.WebuiRequestContext;
+import org.exoplatform.webui.core.ResourceServingComponent;
 import org.exoplatform.webui.core.UIComponent;
-import org.exoplatform.webui.event.Event;
-import org.exoplatform.webui.event.EventListener;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Created by The eXo Platform SARL Author : Dang Van Minh minhdv81@yahoo.com
  * Jul 12, 2006
  */
-public class UIPortalNavigation extends UIComponent
+public class UIPortalNavigation extends UIComponent implements ResourceServingComponent
 {
    private boolean useAJAX = true;
 
    private boolean showUserNavigation = true;
-
-   private TreeNode treeNode_;
 
    private String cssClassName = "";
 
@@ -155,36 +154,6 @@ public class UIPortalNavigation extends UIComponent
       return nodes;
    }
 
-   public void loadTreeNodes() throws Exception
-   {
-      treeNode_ = new TreeNode();
-
-      UserPortal userPortal = Util.getPortalRequestContext().getUserPortalConfig().getUserPortal();
-      List<UserNavigation> listNavigations = userPortal.getNavigations();
-
-      List<UserNode> childNodes = new LinkedList<UserNode>();
-      for (UserNavigation nav : rearrangeNavigations(listNavigations))
-      {
-         if (!showUserNavigation && nav.getKey().getType().equals(SiteType.USER))
-         {
-            continue;
-         }
-         try 
-         {
-            UserNode rootNode = userPortal.getNode(nav, navigationScope, NAVIGATION_FILTER_CONFIG, null);
-            if (rootNode != null)
-            {
-               childNodes.addAll(rootNode.getChildren());
-            }            
-         }
-         catch (Exception ex)
-         {            
-            log.error(ex.getMessage(), ex);
-         }
-      }
-      treeNode_.setChildren(childNodes);
-   }
-   
    public UserNode resolvePath(String path) throws Exception
    {
       WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();
@@ -248,48 +217,6 @@ public class UIPortalNavigation extends UIComponent
       return false;
    }
    
-   /**
-    * 
-    * @param listNavigation
-    * @return
-    */
-   private List<UserNavigation> rearrangeNavigations(List<UserNavigation> listNavigation)
-   {
-      List<UserNavigation> returnNavs = new ArrayList<UserNavigation>();
-
-      List<UserNavigation> portalNavs = new ArrayList<UserNavigation>();
-      List<UserNavigation> groupNavs = new ArrayList<UserNavigation>();
-      List<UserNavigation> userNavs = new ArrayList<UserNavigation>();
-
-      for (UserNavigation nav : listNavigation)
-      {
-         SiteType siteType = nav.getKey().getType();
-         switch (siteType)
-         {
-            case PORTAL:
-               portalNavs.add(nav);
-               break;
-            case GROUP:
-               groupNavs.add(nav);
-               break;
-            case USER:
-               userNavs.add(nav);
-               break;
-         }
-      }
-
-      returnNavs.addAll(portalNavs);
-      returnNavs.addAll(groupNavs);
-      returnNavs.addAll(userNavs);
-
-      return returnNavs;
-   }
-
-   public TreeNode getTreeNodes()
-   {
-      return treeNode_;
-   }
-
    public UserNode getSelectedNode() throws Exception
    {
       UIPortal uiPortal = Util.getUIPortal();
@@ -316,89 +243,82 @@ public class UIPortalNavigation extends UIComponent
       return null;
    }
 
-   public String createServeResourceURL(String nodeUri) throws Exception
+   @Override
+   public void serveResource(WebuiRequestContext context) throws Exception
+   {      
+      ResourceRequest req = context.getRequest();
+      String nodeURI = req.getResourceID();
+            
+      JSONArray jsChilds = getChildrenAsJSON(nodeURI);
+      if (jsChilds == null)
+      {
+         return;
+      }
+      
+      MimeResponse res = context.getResponse(); 
+      res.setContentType("text/json");
+      res.getWriter().write(jsChilds.toString());
+   }      
+   
+
+   public JSONArray getChildrenAsJSON(String nodeURI) throws Exception
    {
-      WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();
-      MimeResponse response = context.getResponse();
-      ResourceURL resourceUrl = response.createResourceURL();
-      resourceUrl.setResourceID(nodeUri);
-      Writer w = new StringWriter();
-      resourceUrl.write(w, true);
-      return w.toString();
+      WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();          
+      
+      Collection<UserNode> childs = null;      
+      UserNode userNode = resolvePath(nodeURI);
+      if (userNode != null)
+      {
+         childs = userNode.getChildren();
+      }
+      
+      JSONArray jsChilds = new JSONArray();
+      if (childs == null)
+      {
+         return null;
+      }                  
+      MimeResponse res = context.getResponse();
+      for (UserNode child : childs)
+      {
+         jsChilds.put(toJSON(child, res));
+      }
+      return jsChilds;
+   }
+
+   private JSONObject toJSON(UserNode node, MimeResponse res) throws Exception
+   {
+      JSONObject json = new JSONObject();
+      String nodeId = node.getId();
+
+      json.put("label", node.getEncodedResolvedLabel());
+      json.put("hasChild", node.getChildrenCount() > 0);
+
+      UserNode selectedNode = Util.getUIPortal().getNavPath();
+      json.put("isSelected", nodeId.equals(selectedNode.getId()));
+      json.put("icon", node.getIcon());
+
+      String resourceURL = resourceURL(node.getURI());
+      json.put("getNodeURL", resourceURL);
+
+      if (node.getPageRef() != null)
+      {
+         NavigationResource resource = new NavigationResource(node);
+         NodeURL url = Util.getPortalRequestContext().createURL(NodeURL.TYPE, resource);
+         url.setAjax(isUseAjax());
+         json.put("actionLink", url.toString());
+      }
+
+      JSONArray childs = new JSONArray();
+      for (UserNode child : node.getChildren())
+      {
+         childs.put(toJSON(child, res));
+      }
+      json.put("childs", childs);
+      return json;
    }
 
    public void setScope(Scope scope)
    {
       this.navigationScope = scope;
    }   
-
-   //Now we use serveSource method to expand a node
-/*   
-   static public class ExpandNodeActionListener extends EventListener<UIPortalNavigation>
-   {
-      public void execute(Event<UIPortalNavigation> event) throws Exception
-      {
-         String treePath = event.getRequestContext().getRequestParameter(OBJECTID);
-                                                        
-         TreeNode treeNode = event.getSource().getTreeNodes();
-         TreeNode expandTree = treeNode.findNodes(treePath);
-         //There're may be interuption between browser and server
-         if (expandTree == null)
-         {
-            event.getRequestContext().addUIComponentToUpdateByAjax(event.getSource());
-            return;
-         }
-
-         UserPortal userPortal = Util.getPortalRequestContext().getUserPortalConfig().getUserPortal();
-
-         UserNode node = expandTree.getNode();
-         userPortal.updateNode(node, event.getSource().navigationScope, null);
-         if (node == null)
-         {
-            event.getSource().loadTreeNodes();
-            event.getRequestContext().getUIApplication().addMessage(new
-               ApplicationMessage("UIPortalNavigation.msg.staleData", null, ApplicationMessage.WARNING));
-         }
-         else
-         {
-            node.filter(event.getSource().NAVIGATION_FILTER_CONFIG);
-            expandTree.setChildren(node.getChildren());
-            expandTree.setExpanded(true);
-         }
-                               
-         event.getRequestContext().addUIComponentToUpdateByAjax(event.getSource());
-      }
-   }
-*/
-   
-   static public class CollapseNodeActionListener extends EventListener<UIPortalNavigation>
-   {
-      public void execute(Event<UIPortalNavigation> event) throws Exception
-      {
-         // get URI
-         String treePath = event.getRequestContext().getRequestParameter(OBJECTID);
-
-         UIPortalNavigation uiNavigation = event.getSource();
-         TreeNode rootNode = uiNavigation.getTreeNodes();
-         
-         TreeNode collapseTree = rootNode.findNodes(treePath);
-         if (collapseTree != null)
-         {
-            collapseTree.setExpanded(false);
-         }         
-         
-         Util.getPortalRequestContext().setResponseComplete(true);
-      }
-   }
-
-   static public class CollapseAllNodeActionListener extends EventListener<UIPortalNavigation>
-   {
-      public void execute(Event<UIPortalNavigation> event) throws Exception
-      {
-         UIPortalNavigation uiNavigation = event.getSource();
-         uiNavigation.loadTreeNodes();
-
-         event.getRequestContext().addUIComponentToUpdateByAjax(uiNavigation);
-      }
-   }
 }
