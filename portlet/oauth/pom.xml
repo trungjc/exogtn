@@ -9,7 +9,7 @@
    </parent>
 
    <modelVersion>4.0.0</modelVersion>
-   <artifactId>exo.portal.portlet.oauth</artifactId>
+   <artifactId>exo.portal.portlet.shindig-oauth</artifactId>
    <packaging>war</packaging>
    <name>GateIn Portal Portlet Shindig OAuth Store</name>
 
@@ -29,12 +29,12 @@
       <dependency>
          <groupId>org.juzu</groupId>
          <artifactId>juzu-core</artifactId>
-         <version>0.4.3-SNAPSHOT</version>
+         <version>0.4.5-SNAPSHOT</version>
       </dependency>
       <dependency>
          <groupId>org.juzu</groupId>
          <artifactId>juzu-overlay-gatein</artifactId>
-         <version>0.4.3-SNAPSHOT</version>
+         <version>0.4.5-SNAPSHOT</version>
          <type>war</type>
       </dependency>
    </dependencies>

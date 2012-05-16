@@ -36,13 +36,4 @@
          <keywords>juzu</keywords>
       </portlet-info>
    </portlet>
-   <filter>
-      <filter-name>HeaderFilter</filter-name>
-      <filter-class>org.exoplatform.oauth.shindig.management.filters.HeaderFilter</filter-class>
-      <lifecycle>RENDER_PHASE</lifecycle>
-   </filter>
-   <filter-mapping>
-      <filter-name>HeaderFilter</filter-name>
-      <portlet-name>UIShindigOAuth</portlet-name>
-   </filter-mapping>
 </portlet-app>

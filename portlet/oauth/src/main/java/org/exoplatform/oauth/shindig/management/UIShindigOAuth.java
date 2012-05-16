@@ -25,11 +25,14 @@ import org.exoplatform.portal.gadget.core.OAuthStoreConsumer;
 import org.exoplatform.portal.gadget.core.OAuthStoreConsumerService;
 import org.exoplatform.portal.gadget.core.ExoOAuthStore;
 import org.juzu.Action;
+import org.juzu.Controller;
 import org.juzu.Path;
+import org.juzu.Resource;
 import org.juzu.Response;
 import org.juzu.View;
 import org.juzu.impl.compiler.BaseProcessor;
 import org.juzu.impl.utils.Logger;
+import org.juzu.plugin.ajax.Ajax;
 import org.w3c.dom.Element;
 
 import java.io.IOException;
@@ -48,7 +51,7 @@ import javax.portlet.RenderResponse;
  * @author <a href="kienna@exoplatform.com">Kien Nguyen</a>
  * @version $Revision$
  */
-public class UIShindigOAuth
+public class UIShindigOAuth extends Controller
 {
    private final Logger log = BaseProcessor.getLogger(UIShindigOAuth.class);
    
@@ -71,7 +74,7 @@ public class UIShindigOAuth
    @Inject
    Session session;
    
-   @Inject
+   //@Inject
    String message;
    
    @View
@@ -80,13 +83,13 @@ public class UIShindigOAuth
       OAuthStoreConsumerService store =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
       List<OAuthStoreConsumer> allConsumers = store.getAllConsumers();
-      oauthList.allConsumers(allConsumers).render();
+      oauthList.with().allConsumers(allConsumers).render();
    }
    
    @View
    public void addNewConsumer()
    {
-      newConsumer.session(session).message(message).render();
+      newConsumer.with().session(session).message(message).render();
    }
    
    @View
@@ -95,13 +98,13 @@ public class UIShindigOAuth
       OAuthStoreConsumerService store =
          (OAuthStoreConsumerService)PortalContainer.getInstance().getComponentInstanceOfType(OAuthStoreConsumerService.class);
       List<OAuthStoreConsumer> allConsumers = store.getAllConsumers();
-      newMapping.allConsumers(allConsumers).render();
+      newMapping.with().allConsumers(allConsumers).render();
    }
    
    @View
    public void consumerDetail()
    {
-      consumerDetail.consumer(session.getConsumer()).render();
+      consumerDetail.with().consumer(session.getConsumer()).render();
    }
    
    @Action
