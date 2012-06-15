@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2009 eXo Platform SAS.
+/*
+ * Copyright (C) 2012 eXo Platform SAS.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -18,32 +18,41 @@
  */
 package org.exoplatform.commons.chromattic;
 
+import org.exoplatform.commons.utils.Safe;
+
 import javax.jcr.Credentials;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 /**
- * The synchronized context is associated with a {@link org.exoplatform.commons.chromattic.Synchronization} object.
- *
- * @author <a href="mailto:julien.viet@exoplatform.com">Julien Viet</a>
+ * @author <a href="trongtt@gmail.com">Trong Tran</a>
  * @version $Revision$
  */
-class SynchronizedContext extends AbstractContext
+public class SessionContextKey
 {
+   private String domainName;
 
-   /** The related synchronization when it is not null. */
-   final Synchronization synchronization;
+   private Credentials credentials;
 
-   public SynchronizedContext(ChromatticLifeCycle configurator, Synchronization synchronization)
+   public SessionContextKey(String domainName, Credentials credentials)
    {
-      super(configurator);
-
-      //
-      this.synchronization = synchronization;
+      this.domainName = domainName;
+      this.credentials = credentials;
    }
 
-   public Session doLogin(Credentials credentials) throws RepositoryException
+   @Override
+   public int hashCode()
    {
-      return synchronization.doLogin(this, credentials);
+      return (credentials == null) ? domainName.hashCode() : domainName.hashCode() ^ credentials.hashCode();
+   }
+
+   @Override
+   public boolean equals(Object obj)
+   {
+      if (obj == null || !(obj instanceof SessionContextKey))
+      {
+         return false;
+      }
+
+      SessionContextKey temp = (SessionContextKey)obj;
+      return (Safe.equals(domainName, temp.domainName) && Safe.equals(credentials, temp.credentials));
    }
 }

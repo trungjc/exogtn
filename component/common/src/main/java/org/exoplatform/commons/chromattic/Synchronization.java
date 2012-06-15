@@ -18,6 +18,7 @@
  */
 package org.exoplatform.commons.chromattic;
 
+import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import java.util.HashMap;
@@ -36,7 +37,7 @@ public class Synchronization
    private final Map<String, Session> repositorySessions = new HashMap<String, Session>();
    
    /** . */
-   private final Map<String, SynchronizedContext> contexts = new HashMap<String, SynchronizedContext>();
+   private final Map<SessionContextKey, SynchronizedContext> contexts = new HashMap<SessionContextKey, SynchronizedContext>();
 
    /** . */
    private boolean saveOnClose = true;
@@ -47,13 +48,13 @@ public class Synchronization
     * @param name the global context name
     * @return the global context or null if no such context exists
     */
-   public SynchronizedContext getContext(String name)
+   public SynchronizedContext getContext(SessionContextKey key)
    {
-      if (name == null)
+      if (key == null)
       {
          throw new NullPointerException();
       }
-      return contexts.get(name);
+      return contexts.get(key);
    }
 
    /**
@@ -63,25 +64,26 @@ public class Synchronization
     * @return the global context related to life cycle
     * @throws IllegalStateException if a context is already created for the specified life cycle
     */
-   public SynchronizedContext openContext(ChromatticLifeCycle lifeCycle) throws IllegalStateException
+   public SynchronizedContext openContext(ChromatticLifeCycle lifeCycle, Credentials credentials) throws IllegalStateException
    {
       if (lifeCycle == null)
       {
          throw new NullPointerException();
       }
-      String name = lifeCycle.getDomainName();
-      SynchronizedContext context = contexts.get(name);
+      SessionContextKey key = new SessionContextKey(lifeCycle.getDomainName(), credentials);
+      SynchronizedContext context = contexts.get(key);
       if (context != null)
       {
          throw new IllegalStateException();
       }
       context = new SynchronizedContext(lifeCycle, this);
-      contexts.put(name, context);
+      context.setAttachment("credentials", credentials);
+      contexts.put(key, context);
       lifeCycle.onOpenSession(context);
       return context;
    }
 
-   public Session doLogin(SynchronizedContext ctx) throws RepositoryException
+   public Session doLogin(SynchronizedContext ctx, Credentials credentials) throws RepositoryException
    {
       if (ctx == null)
       {
@@ -95,7 +97,7 @@ public class Synchronization
       Session session = repositorySessions.get(workspaceName);
       if (session == null)
       {
-         session = ctx.openSession();
+         session = ctx.openSession(credentials);
          repositorySessions.put(workspaceName, session);
       }
       return session;

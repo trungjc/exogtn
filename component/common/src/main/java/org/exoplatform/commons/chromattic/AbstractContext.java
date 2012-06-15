@@ -21,11 +21,13 @@ package org.exoplatform.commons.chromattic;
 import org.chromattic.api.ChromatticSession;
 import org.exoplatform.services.jcr.core.ManageableRepository;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import javax.jcr.Credentials;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  * An abstract implementation of the {@link org.exoplatform.commons.chromattic.SessionContext} interface. The context
@@ -60,7 +62,7 @@ abstract class AbstractContext implements SessionContext
    {
       if (session == null)
       {
-         session = lifeCycle.realChromattic.openSession();
+         session = lifeCycle.realChromattic.openSession((Credentials)getAttachment("credentials"));
       }
       return session;
    }
@@ -89,8 +91,8 @@ abstract class AbstractContext implements SessionContext
          attributes.remove(name);
       }
    }
-
-   public abstract Session doLogin() throws RepositoryException;
+   
+   public abstract Session doLogin(Credentials credentials) throws RepositoryException;
 
    /**
     * Open and returns a session. Should be used by subclasses.
@@ -98,9 +100,14 @@ abstract class AbstractContext implements SessionContext
     * @return a session
     * @throws RepositoryException any repository exception
     */
-   protected final Session openSession() throws RepositoryException
+   protected final Session openSession(Credentials credentials) throws RepositoryException
    {
       ManageableRepository repo = lifeCycle.manager.repositoryService.getCurrentRepository();
+      if (credentials == JCRCredentials.CURRENT_USER_CREDENTIALS)
+      {
+         return repo.login(lifeCycle.getWorkspaceName());
+      }
+
       return repo.getSystemSession(lifeCycle.getWorkspaceName());
    }
 

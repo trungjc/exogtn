@@ -27,6 +27,7 @@ import org.exoplatform.container.xml.PropertiesParam;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 
+import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import java.util.*;
@@ -151,14 +152,14 @@ public class ChromatticLifeCycle extends BaseComponentPlugin
       return manager;
    }
 
-   AbstractContext getLoginContext()
+   AbstractContext getLoginContext(Credentials credentials)
    {
       Synchronization sync = manager.getSynchronization();
 
       //
       if (sync != null)
       {
-         return sync.getContext(domainName);
+         return sync.getContext(new SessionContextKey(domainName, credentials));
       }
 
       //
@@ -184,20 +185,32 @@ public class ChromatticLifeCycle extends BaseComponentPlugin
     */
    public final SessionContext getContext(boolean peek)
    {
+      return getContext(peek, null);
+   }
+
+   /**
+    * A best effort to return a session context whether it's local or global.
+    *
+    * @param peek true if no context should be automatically created
+    * @return a session context
+    */
+   public final SessionContext getContext(boolean peek, Credentials credentials)
+   {
       log.trace("Requesting context");
       Synchronization sync = manager.getSynchronization();
 
       //
       if (sync != null)
       {
+         SessionContextKey key = new SessionContextKey(domainName, credentials);
          log.trace("Found synchronization about to get the current context for chromattic " + domainName);
-         SynchronizedContext context = sync.getContext(domainName);
+         SynchronizedContext context = sync.getContext(key);
 
          //
          if (context == null && !peek)
          {
             log.trace("No current context found, about to open one");
-            context = sync.openContext(this);
+            context = sync.openContext(this, credentials);
          }
          else
          {
@@ -218,6 +231,11 @@ public class ChromatticLifeCycle extends BaseComponentPlugin
    }
 
    final SessionContext openSynchronizedContext()
+   {
+      return openSynchronizedContext(null);
+   }
+
+   final SessionContext openSynchronizedContext(Credentials credentials)
    {
       log.trace("Opening a global context");
       AbstractContext context = (AbstractContext)getContext(true);
@@ -244,7 +262,7 @@ public class ChromatticLifeCycle extends BaseComponentPlugin
 
       //
       log.trace("Opening a global context for the related sync");
-      return sync.openContext(this);
+      return sync.openContext(this, credentials);
    }
 
    /**
@@ -254,6 +272,19 @@ public class ChromatticLifeCycle extends BaseComponentPlugin
     * @return the session context
     */
    public final SessionContext openContext()
+   {
+      return openContext(null);
+   }
+   
+   /**
+    * Opens a context and returns it. If there is a global ongoing synchronization then the context will be
+    * scoped to that synchronization, otherwise it will be a local context.
+    *
+    * @param credentials the JCR credentials
+    * 
+    * @return the session context
+    */
+   public final SessionContext openContext(Credentials credentials)
    {
       log.trace("Opening a context");
       AbstractContext context = (AbstractContext)getContext(true);
@@ -274,12 +305,13 @@ public class ChromatticLifeCycle extends BaseComponentPlugin
       if (sync != null)
       {
          log.trace("Found a synchronization, about to open a global context");
-         context = sync.openContext(this);
+         context = sync.openContext(this, credentials);
       }
       else
       {
          log.trace("Not synchronization found, about to a local context");
          LocalContext localContext = new LocalContext(this);
+         localContext.setAttachment("credentials", credentials);
          currentContext.set(localContext);
          onOpenSession(localContext);
          context = localContext;
@@ -314,9 +346,9 @@ public class ChromatticLifeCycle extends BaseComponentPlugin
    {
    }
 
-   Session doLogin() throws RepositoryException
+   Session doLogin(Credentials credentials) throws RepositoryException
    {
-      AbstractContext loginContext = getLoginContext();
+      AbstractContext loginContext = getLoginContext(credentials);
 
       //
       if (loginContext == null)
@@ -325,7 +357,7 @@ public class ChromatticLifeCycle extends BaseComponentPlugin
       }
 
       //
-      return loginContext.doLogin();
+      return loginContext.doLogin(credentials);
    }
 
    public final void start() throws Exception

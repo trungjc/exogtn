@@ -22,6 +22,14 @@ import org.chromattic.api.Chromattic;
 import org.chromattic.api.ChromatticSession;
 import org.exoplatform.component.test.*;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.services.security.ConversationState;
+import org.exoplatform.services.security.Identity;
+import org.exoplatform.services.security.MembershipEntry;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 import javax.jcr.Session;
 import javax.jcr.Workspace;
@@ -144,6 +152,39 @@ public class ChromatticIntegrationTestCase extends AbstractKernelTest
       test1LF.closeContext(false);
    }
 
+   public void testSessionContextKey()
+   {
+      SessionContextKey key1 = new SessionContextKey("test1", null);
+      Map<SessionContextKey, String> contexts = new HashMap<SessionContextKey, String>();
+      contexts.put(key1, "Hello Anonymous");
+
+      SessionContextKey key2 = new SessionContextKey("test1", null);
+      assertEquals(key1.hashCode(), key2.hashCode());
+      assertTrue(contexts.containsKey(key2));
+
+      SessionContextKey key3 = new SessionContextKey("test1", JCRCredentials.CURRENT_USER_CREDENTIALS);
+      assertFalse(key1.hashCode() == key3.hashCode());
+      assertFalse(contexts.containsKey(key3));
+      contexts.put(key3, "Hello the current user");
+
+      SessionContextKey key4 = new SessionContextKey("test1", JCRCredentials.CURRENT_USER_CREDENTIALS);
+      assertTrue(key3.hashCode() == key4.hashCode());
+      assertTrue(contexts.containsKey(key4));
+   }
+   
+   public void testCurrentUserSession() throws Exception
+   {
+      chromatticManager.beginRequest();
+      ConversationState.setCurrent(new ConversationState(new Identity("mary")));
+      
+      ChromatticSession session = test1LF.getChromattic().openSession(JCRCredentials.CURRENT_USER_CREDENTIALS);
+      Session jcrSession = session.getJCRSession();
+      assertEquals("mary", jcrSession.getUserID());
+      
+      ConversationState.setCurrent(null);
+      chromatticManager.endRequest(false);
+   }
+   
    public void testGlobalSession() throws Exception
    {
       Session jcrSession;

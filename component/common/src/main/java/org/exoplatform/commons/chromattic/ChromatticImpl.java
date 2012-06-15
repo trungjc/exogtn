@@ -43,16 +43,7 @@ class ChromatticImpl implements Chromattic
 
    public ChromatticSession openSession()
    {
-      SessionContext sessionContext = configurator.getContext(false);
-
-      //
-      if (sessionContext == null)
-      {
-         sessionContext = configurator.openSynchronizedContext();
-      }
-
-      //
-      return sessionContext.getSession();
+      return openSession((Credentials)null);
    }
 
    public ChromatticSession openSession(String workspace)
@@ -67,6 +58,15 @@ class ChromatticImpl implements Chromattic
 
    public ChromatticSession openSession(Credentials credentials)
    {
-      throw new UnsupportedOperationException();
+      SessionContext sessionContext = configurator.getContext(false, credentials);
+
+      //
+      if (sessionContext == null)
+      {
+         sessionContext = configurator.openSynchronizedContext();
+      }
+
+      //
+      return sessionContext.getSession();
    }
 }

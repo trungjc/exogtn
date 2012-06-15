@@ -48,7 +48,7 @@ public class PortalSessionLifeCycle implements SessionLifeCycle
 
    public final Session login() throws RepositoryException
    {
-      return chromatticLifeCycle.doLogin();
+      return chromatticLifeCycle.doLogin(null);
    }
 
    public void save(Session session) throws RepositoryException
@@ -62,7 +62,7 @@ public class PortalSessionLifeCycle implements SessionLifeCycle
 
    public final Session login(Credentials credentials) throws RepositoryException
    {
-      throw new UnsupportedOperationException();
+      return chromatticLifeCycle.doLogin(credentials);
    }
 
    public final Session login(String workspace) throws RepositoryException
