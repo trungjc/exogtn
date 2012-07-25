@@ -23,6 +23,16 @@
     xmlns="http://www.gatein.org/xml/ns/gatein_controller_1_0"
     separator-escape=":">
 
+  <!-- Gadget resource handler -->
+  <route path="/gadgets/{gtn:gadgetname}/{gtn:gadgetresourcepath}">
+    <route-param qname="gtn:handler">
+      <value>gadgetResource</value>
+    </route-param>
+    <path-param qname="gtn:gadgetresourcepath" encoding="preserve-path">
+      <pattern>.*</pattern>
+    </path-param>
+  </route>
+
   <route path="/standalone/{gtn:path}">    
 
     <route-param qname="gtn:handler">
@@ -139,5 +149,5 @@
     <route-param qname="gtn:handler">
       <value>default</value>
     </route-param>
-  </route> 
+  </route>
 </controller>

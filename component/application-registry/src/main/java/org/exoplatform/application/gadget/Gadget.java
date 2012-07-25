@@ -34,6 +34,9 @@ public class Gadget implements Serializable
 
    private String url;
 
+   //Need this to compute edit URL for the moment
+   private String jcrURL;
+
    private String title;
 
    private String description;
@@ -62,6 +65,16 @@ public class Gadget implements Serializable
    public void setUrl(String u)
    {
       url = u;
+   }
+
+   public String getJcrURL()
+   {
+      return jcrURL;
+   }
+
+   public void setJcrURL(String u)
+   {
+      jcrURL = u;
    }
 
    public boolean isLocal()

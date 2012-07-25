@@ -194,7 +194,7 @@ public class GadgetUtil
 
    static public String getViewPath(String uri)
    {
-      return getLocalHostBase() + "/" + PortalContainer.getCurrentRestContextName() + "/" + uri;
+      return getLocalHostBase() + (uri.startsWith("/") ? uri : "/" + uri);
    }
 
    static public String getEditPath(String uri)

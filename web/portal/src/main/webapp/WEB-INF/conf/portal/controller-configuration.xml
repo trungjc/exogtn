@@ -125,6 +125,11 @@
           </value-param>
        </init-params>
     </component-plugin>
+    <component-plugin>
+      <name>GadgetResourceRequestHandler</name>
+      <set-method>register</set-method>
+      <type>org.exoplatform.portal.application.GadgetResourceRequestHandler</type>
+    </component-plugin>
   </external-component-plugins>
 
 </configuration>

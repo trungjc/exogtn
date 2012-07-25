@@ -244,7 +244,8 @@ public class GadgetRegistryServiceImpl implements GadgetRegistryService
       if (data instanceof LocalGadgetData)
       {
          LocalGadgetData localData = (LocalGadgetData) data;
-         url = "/" + PortalContainer.getCurrentRestContextName() + "/" + getJCRGadgetURL(localData);
+         //URL to gadget definition file is now a redirect URL instead of URL to JCR node.
+         url = getIndirectURL(gadgetName, localData);
       }
       else if (data instanceof RemoteGadgetData)
       {
@@ -258,11 +259,22 @@ public class GadgetRegistryServiceImpl implements GadgetRegistryService
       
       return url;
    }
-   
-   private String getJCRGadgetURL(LocalGadgetData data)
+
+   public String getJCRGadgetResourcesDir(GadgetData data)
    {
-      return "jcr/" + chromatticLifeCycle.getRepositoryName() + "/" + chromatticLifeCycle.getWorkspaceName()
-            + data.getPath() + "/app:resources/" + data.getFileName();
+      if(data instanceof LocalGadgetData)
+      {
+         return "jcr/" + chromatticLifeCycle.getRepositoryName() + "/" + chromatticLifeCycle.getWorkspaceName() + ((LocalGadgetData)data).getPath() + "/app:resources/";
+      }
+      else
+      {
+         throw new IllegalArgumentException("Could not get JCR URL  to resources directory of a remote gadget");
+      }
+   }
+
+   private String getIndirectURL(String gadgetName, LocalGadgetData data)
+   {
+      return "/" + PortalContainer.getCurrentPortalContainerName() + "/gadgets/" + gadgetName + "/" + data.getFileName();
    }
 
    private void saveGadget(GadgetDefinition def, Gadget gadget)
@@ -276,13 +288,15 @@ public class GadgetRegistryServiceImpl implements GadgetRegistryService
    private Gadget loadGadget(GadgetDefinition def)
    {
       GadgetData data = def.getData();
+      Gadget gadget = new Gadget();
 
       //
       String url;
       if (data instanceof LocalGadgetData)
       {
          LocalGadgetData localData = (LocalGadgetData)data;
-         url = getJCRGadgetURL(localData);
+         url = getIndirectURL(def.getName(), localData);
+         gadget.setJcrURL(getJCRGadgetResourcesDir(localData) + localData.getFileName());
       }
       else
       {
@@ -290,8 +304,6 @@ public class GadgetRegistryServiceImpl implements GadgetRegistryService
          url = remoteData.getURL();
       }
 
-      //
-      Gadget gadget = new Gadget();
       gadget.setName(def.getName());
       gadget.setDescription(def.getDescription());
       gadget.setLocal(def.isLocal());

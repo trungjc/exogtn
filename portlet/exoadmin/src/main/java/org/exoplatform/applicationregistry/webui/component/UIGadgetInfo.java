@@ -81,7 +81,7 @@ public class UIGadgetInfo extends UIContainer
    public String getEditUrl()
    {
       if (gadget_.isLocal())
-         return GadgetUtil.getEditPath(gadget_.getUrl());
+         return GadgetUtil.getEditPath(gadget_.getJcrURL());
       return null;
    }
 
