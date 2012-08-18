@@ -22,12 +22,15 @@ package org.exoplatform.portal.webui.page;
 import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.UserPortalConfig;
+import org.exoplatform.portal.config.UserPortalConfigService;
 import org.exoplatform.portal.config.model.Container;
 import org.exoplatform.portal.config.model.ModelObject;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PortalConfig;
 import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.portal.mop.SiteType;
+import org.exoplatform.portal.mop.navigation.NodeFilter;
+import org.exoplatform.portal.mop.navigation.NodeState;
 import org.exoplatform.portal.mop.user.UserNavigation;
 import org.exoplatform.portal.mop.user.UserNode;
 import org.exoplatform.portal.mop.user.UserNodeFilterConfig;
@@ -36,6 +39,7 @@ import org.exoplatform.portal.webui.application.UIGadget;
 import org.exoplatform.portal.webui.portal.PageNodeEvent;
 import org.exoplatform.portal.webui.portal.UIPortal;
 import org.exoplatform.portal.webui.util.PortalDataMapper;
+import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.portal.webui.workspace.UIPortalApplication;
 import org.exoplatform.portal.webui.workspace.UIWorkingWorkspace;
 import org.exoplatform.web.application.ApplicationMessage;
@@ -62,10 +66,10 @@ public class UIPageActionListener
          PortalRequestContext pcontext = PortalRequestContext.getCurrentInstance();
          UserPortal userPortal = pcontext.getUserPortalConfig().getUserPortal();
          UIPortalApplication uiPortalApp = event.getSource();
-         UIPortal showedUIPortal = uiPortalApp.getCurrentSite();
+         UIPortal showedUIPortal = uiPortalApp.getCurrentSite();         
    
          UserNodeFilterConfig.Builder builder = UserNodeFilterConfig.builder();
-         builder.withReadCheck();
+         builder.withCustomFilter(new DefaultNodeFilter());
 
          PageNodeEvent<UIPortalApplication> pageNodeEvent = (PageNodeEvent<UIPortalApplication>)event;
          String nodePath = pageNodeEvent.getTargetNodeUri();
@@ -77,27 +81,22 @@ public class UIPageActionListener
             UserNavigation navigation = userPortal.getNavigation(siteKey);
             if (navigation != null)
             {
-               targetNode = userPortal.resolvePath(navigation, builder.build(), nodePath);
+               targetNode = userPortal.resolvePath(navigation, null, nodePath);
                if (targetNode == null)
                {
-                  // If unauthenticated users have no permission on PORTAL node and URL is valid, they will be required to login
-                  if (pcontext.getRemoteUser() == null && siteKey.getType().equals(SiteType.PORTAL))
-                  {
-                     targetNode = userPortal.resolvePath(navigation, null, nodePath);
-
-                     if (targetNode != null)
-                     {
-                        uiPortalApp.setLastRequestNavData(null);
-                        pcontext.requestAuthenticationLogin();
-                        return;
-                     }
-                  }
-                  else
-                  {
-                     // If path to node is invalid, get the default node instead of.
-                     targetNode = userPortal.getDefaultPath(navigation, builder.build());
-                  }
+                  //If path to node is invalid, get the default node instead of.
+                  targetNode = userPortal.getDefaultPath(navigation, builder.build());
                }
+               else if (pcontext.getRemoteUser() == null && siteKey.getType().equals(SiteType.PORTAL))
+               {
+                  // If unauthenticated users have no permission on PORTAL node and URL is valid, they will be required to login 
+                  if (targetNode.getPageRef() != null && !hasPermission(targetNode.getPageRef()))
+                  {
+                     uiPortalApp.setLastRequestNavData(null);
+                     pcontext.requestAuthenticationLogin();
+                     return;
+                  }
+               }               
             }
          }
          
@@ -168,6 +167,25 @@ public class UIPageActionListener
          pcontext.addUIComponentToUpdateByAjax(uiPortalApp.getChildById(UIPortalApplication.UI_WORKING_WS_ID));
       }
 
+      private boolean hasPermission(String pageRef)
+      {
+         UIPortalApplication uiPortalApp = Util.getUIPortalApplication();
+         UserPortalConfigService service = uiPortalApp.getApplicationComponent(UserPortalConfigService.class);
+         if (pageRef != null)
+         {
+            try
+            {
+               Page page = service.getPage(pageRef);
+               if (page != null)
+               {
+                  return service.getUserACL().hasPermission(page);
+               }
+            }
+            catch (Exception e) {}
+         }
+         return false;
+      }
+
       private UIPortal buildUIPortal(SiteKey siteKey, UIPortalApplication uiPortalApp, UserPortalConfig userPortalConfig) throws Exception
       {
          DataStorage storage = uiPortalApp.getApplicationComponent(DataStorage.class);
@@ -185,6 +203,32 @@ public class UIPageActionListener
          //Reset selected navigation on userPortalConfig
          PortalDataMapper.toUIPortal(uiPortal, userPortalConfig.getPortalConfig());
          return uiPortal;
+      }      
+      
+      private class DefaultNodeFilter implements NodeFilter
+      {
+         private boolean found;         
+         
+         @Override
+         public boolean accept(int depth, String id, String name, NodeState state)
+         {            
+            if (depth == 0)
+            {
+               return true;               
+            }
+            else
+            {
+               if (found)
+               {
+                  return false;
+               }
+               else
+               {
+                  found = hasPermission(state.getPageRef());
+                  return found;                  
+               }               
+            }
+         }
       }
    }
   

@@ -21,6 +21,7 @@ package org.exoplatform.portal.mop.user;
 
 import org.exoplatform.commons.utils.Safe;
 import org.exoplatform.portal.mop.Visibility;
+import org.exoplatform.portal.mop.navigation.NodeFilter;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -51,6 +52,9 @@ public class UserNodeFilterConfig
    /** . */
    final boolean temporalCheck;
 
+   /** . */
+   final NodeFilter customFilter;
+
    public UserNodeFilterConfig(Builder builder)
    {
       if (builder == null)
@@ -62,6 +66,7 @@ public class UserNodeFilterConfig
       this.visibility = Safe.unmodifiableSet(builder.withVisibility);
       this.authorizationMode = builder.withAuthorizationMode;
       this.temporalCheck = builder.withTemporalCheck;
+      this.customFilter = builder.withCustomFilter;
    }
 
    public Set<Visibility> getVisibility()
@@ -100,6 +105,9 @@ public class UserNodeFilterConfig
 
       /** . */
       private boolean withTemporalCheck;
+      
+      /** . */
+      private NodeFilter withCustomFilter;
 
       private Builder()
       {
@@ -189,6 +197,12 @@ public class UserNodeFilterConfig
       public Builder withNoCheck()
       {
          this.withAuthorizationMode = AUTH_NO_CHECK;
+         return this;
+      }
+      
+      public Builder withCustomFilter(NodeFilter customFilter)
+      {
+         this.withCustomFilter = customFilter;
          return this;
       }
 

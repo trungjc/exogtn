@@ -304,7 +304,7 @@ public final class NodeContext<N> extends ListTree<NodeContext<N>>
 
    private void doFilter(int depth, NodeFilter filter)
    {
-      boolean accept = filter.accept(depth, getId(), name, getState());
+      boolean accept = filter.accept(depth, getId(), getName(), getState());
       setHidden(!accept);
       if (expanded)
       {

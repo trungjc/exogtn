@@ -96,6 +96,11 @@ class UserNodeFilter implements NodeFilter
 
    public boolean accept(int depth, String id, String name, NodeState state)
    {
+      if (config.customFilter != null && !config.customFilter.accept(depth, id, name, state)) 
+      {
+         return false;
+      }
+      
       Visibility visibility = state.getVisibility();
 
       // Correct null -> displayed
